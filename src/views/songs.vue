@@ -6,7 +6,7 @@
         </div>
             <h1 class="text-4xl font-semibold">Songs</h1>
 
-            <div class="flex w-full py-4 overflow-auto">
+            <div class="flex w-full py-4 overflow-auto scrollBar p-2">
                 <div class="flex flex-col w-full space-y-1">
                     <div v-for="(track, index) in tracksList" @click="playTrack(track, index, true)" :class="`w-full ${index%2 == 0 ? `bg-white/10` : `bg-transparent`} p-1 px-2 rounded-md cursor-pointer`">
                         <div class="flex space-x-2 items-center justify-between text-[0.76em]">

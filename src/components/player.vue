@@ -1,11 +1,11 @@
 <template>
-  <div class="w-full h-full bg-transparent p-1">
-    <div class="flex flex-col w-full bg-transparent space-y-2 text-white p-2 rounded-md">
+  <div class="flex w-full bg-transparent justify-center items-center p-1">
+    <div class="flex flex-col w-full bg-transparent space-y-1 text-white p-2 rounded-md">
       <div class="flex w-full">
         <span class="flex w-[10%] justify-center items-center text-sm">
           <p>{{currentTime}}</p>
         </span>
-        <input type="range" min="0" :max="duration" step="0.1" v-model="progress" @input="seek" class="w-[80%]"    />
+        <input type="range" min="0" :max="duration" step="0.1" v-model="progress" @input="seek" class="trackProgressBar w-[80%]"    />
         <span class="flex w-[10%] justify-center items-center text-sm">
           <p>{{totalTime}}</p>
         </span>
@@ -63,7 +63,7 @@
           <div class="group flex w-10 h-10 bg-black rounded-md overflow-hidden cursor-pointer">
             <img class="w-full h-full" :src="currentTrack.cover" alt="">
 
-            <div class="group-hover:flex hidden absolute left-0 top-0 translate-y-[-105%] bg-white/20 w-52 h-52 p-[2px]  rounded-md">
+            <div class="group-hover:flex hidden absolute left-0 top-0 translate-x-[-25%] translate-y-[-102%] bg-white/20 w-72 h-72 p-[3px]  rounded-md">
               <img class="w-full h-full rounded-md" :src="currentTrack.cover" alt="">
             </div>
           </div>
@@ -102,7 +102,7 @@
     </div>
   </div>
 
-  <div v-if="fullScreen" class="absolute flex w-full h-full bg-black">
+  <div v-if="fullScreen" class="absolute flex w-[100vw] h-[100vh] bg-black">
     <span @click="()=>{fullScreen = false}" class="group absolute top-2 left-2 bg-black/20 rounded-lg p-2 border border-white/20 text-white backdrop-blur-sm z-10 cursor-pointer transition-all">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3 group-hover:size-4 transition-all">
         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -120,14 +120,14 @@
       <div :class="`g1 absolute flex bottom-0 left-[75%] w-[50%] h-[40%] bg-[${currentTrackColors[0]}] rounded-full blur-lg`"></div>
     </div>
 
-    <div class="relative flex w-[60%] h-full bg-transparent justify-start items-center">
-      <img class="fading-box w-auto h-full" :src="currentTrack.cover" alt="">
+    <div class="relative flex w-full lg:w-[60%] h-full bg-transparent justify-start items-center">
+      <img class="fading-box lg:w-auto lg:h-full" :src="currentTrack.cover" alt="">
 
-      <div class="group flex flex-col space-y-1 absolute bottom-[10%] left-[50%] translate-x-[-50%] w-[45%] h-fit bg-black/20 rounded-xl p-2 border border-white/20 text-white backdrop-blur-sm transition-all duration-300">
+      <div class="group flex flex-col space-y-1 absolute bottom-[10%] left-[50%] translate-x-[-50%] w-[45%] h-fit bg-black/30 rounded-xl p-2 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 hover:ease-in-out">
         
         <div class="flex w-full justify-between items-start p-1">
           <div class="flex flex-col">
-            <p class="text-[1em] font-semibold">{{ currentTrack.title }}</p>
+            <p class="text-[0.85em] font-semibold">{{ currentTrack.title }}</p>
             <span class="flex text-[0.76em] text-white/80 space-x-2"><p>{{ currentTrack.artist }}</p></span>
           </div>
 
@@ -140,20 +140,20 @@
           </button>
         </div>
 
-        <div class="group-hover:flex hidden w-full text-[0.76em] transition-all duration-300">
+        <div class="group-hover:flex hidden w-full text-[0.76em] transition-all duration-300 ease-in-out">
           <span class="flex w-[15%] justify-center items-center">
             <p>{{currentTime}}</p>
           </span>
-          <input type="range" min="0" :max="duration" step="0.1" v-model="progress" @input="seek" class="w-[70%]"    />
+          <input type="range" min="0" :max="duration" step="0.1" v-model="progress" @input="seek" class="trackProgressBar w-[70%]"    />
           <span class="flex w-[15%] justify-center items-center">
             <p>{{totalTime}}</p>
           </span>
         </div>
 
-        <div class="group-hover:flex hidden w-full space-x-2 justify-center items-center transition-all duration-300">
+        <div class="group-hover:flex hidden w-full space-x-2 justify-center items-center transition-all duration-300 ease-in-out">
           <button @click="toggleShuffle" :class="`${shuffle ? `text-cyan-500` : `text-white`}`">
             <span class="flex">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-6">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-5">
                 <path d="M18 4L21 7M21 7L18 10M21 7H17C16.0707 7 15.606 7 15.2196 7.07686C13.6329 7.39249 12.3925 8.63288 12.0769 10.2196C12 10.606 12 11.0707 12 12C12 12.9293 12 13.394 11.9231 13.7804C11.6075 15.3671 10.3671 16.6075 8.78036 16.9231C8.39397 17 7.92931 17 7 17H3M18 20L21 17M21 17L18 14M21 17H17C16.0707 17 15.606 17 15.2196 16.9231C15.1457 16.9084 15.0724 16.8917 15 16.873M3 7H7C7.92931 7 8.39397 7 8.78036 7.07686C8.85435 7.09158 8.92758 7.1083 9 7.12698" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
@@ -190,14 +190,14 @@
 
           <button @click="toggleLoop()">
             <span :class="`flex ${loop ? `text-cyan-500` : `text-white`}`">
-              <svg viewBox="0 0 17 17" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="size-6">
+              <svg viewBox="0 0 17 17" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="size-5">
                 <path d="M1 9c0 2.206 1.711 4 3.813 4v1c-2.654 0-4.813-2.243-4.813-5s2.159-5 4.813-5h4.229l-1.646-1.646 0.707-0.707 2.854 2.853-2.853 2.854-0.708-0.708 1.647-1.646h-4.23c-2.102 0-3.813 1.794-3.813 4zM12.187 4v1c2.102 0 3.813 1.794 3.813 4s-1.711 4-3.813 4h-4.23l1.646-1.646-0.707-0.707-2.853 2.853 2.854 2.854 0.707-0.707-1.647-1.647h4.229c2.655 0 4.814-2.243 4.814-5s-2.159-5-4.813-5z" fill="currentColor" />
               </svg>
             </span>
           </button>
         </div>
 
-        <div class="group-hover:flex hidden w-full space-x-2 transition-all duration-300">
+        <div class="group-hover:flex hidden w-full space-x-2 transition-all duration-300 ease-in-out">
           <button>
             <span v-if="volume > 0" class="flex">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
@@ -335,7 +335,7 @@ const loadMetadata = async (index, validTrack) => {
     console.error("Erreur lors du chargement des métadonnées :", error);
   }
 };
-const initAudio = async (play, trackId) => {
+const initAudio = async (isPlaying, trackId) => {
 
   if(trackId){
     await loadMetadata(trackId);
@@ -364,7 +364,7 @@ const initAudio = async (play, trackId) => {
     }
   });
 
-  if(play == true){
+  if(isPlaying == true){
     // console.log(currentTrack.value, "qdoqdio")
     play();
   }
@@ -441,7 +441,7 @@ function formatTime(seconds){
 };
 
 // Jouer l'audio
-const play = () => {
+function play(){
   if (!sound.value) return;
   sound.value.play();
   isPlaying.value = true;
@@ -531,15 +531,15 @@ const handleKeyPress = (event) => {
 onMounted(async () => {
   window.addEventListener("keydown", handleKeyPress);
 });
-watch(() => props.tracks, (newVal) => {
-  currentTrackIndex.value = 0;
-  initAudio(false);
+// watch(() => props.tracks, (newVal) => {
+//   currentTrackIndex.value = 0;
+//   initAudio(false);
 
-  console.log("restart détecté, déclenchement de play-song", newVal);
-  if (newVal) {
-    emit("play-song"); // Déclenche la lecture
-  }
-});
+//   console.log("restart détecté, déclenchement de play-song", newVal);
+//   if (newVal) {
+//     emit("play-song"); // Déclenche la lecture
+//   }
+// });
 
 // Ouvrir la boîte de dialogue de sélection de fichiers
 // async function openFileDialog() {

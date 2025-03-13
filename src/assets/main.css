@@ -1,40 +1,4 @@
 @import './base.css';
-
-
-/* #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
-} */
-
 :root {
   --color-bg1: rgb(171, 171, 171);
   --color-bg2: rgb(49, 50, 54);
@@ -46,8 +10,19 @@ a,
   --color-interactive: 140, 100, 255;
   --circle-size: 85%;
   --blending: hard-light;
+  --scrollBar-color: rgb(57, 162, 218);
 }
-
+@keyframes gradientMoving {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
 @keyframes moveInCircle {
   0% {
     transform: rotate(0deg);
@@ -59,7 +34,6 @@ a,
     transform: rotate(360deg);
   }
 }
-
 @keyframes moveVertical {
   0% {
     transform: translateY(-50%);
@@ -71,7 +45,6 @@ a,
     transform: translateY(-50%);
   }
 }
-
 @keyframes moveHorizontal {
   0% {
     transform: translateX(50%) translateY(-10%);
@@ -84,13 +57,40 @@ a,
   }
 }
 
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/public/Fonts/Montserrat/Montserrat-VariableFont_wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('/public/Fonts/Poppins/Poppins-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Dosis';
+  src: url('/public/Fonts/Dosis/Dosis-VariableFont_wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body{
+  font-family: Poppins;
+}
+
 .gradient-bg {
   overflow: hidden;
   background: linear-gradient(90deg, var(--color-bg1), rgba(var(--color2), 0.9), rgba(var(--color3), 0.9));
+  background-size: 200% 200%;
+  animation: gradientMoving 25s ease infinite;
 }
 .big-gradient-bg {
   overflow: hidden;
   background: linear-gradient(80deg, var(--color-bg1), rgba(var(--color2), 0.9), rgba(var(--color3), 0.9), rgba(var(--color4), 0.9), rgba(var(--color5), 0.9));
+  background-size: 200% 200%;
+  animation: gradientMoving 25s ease infinite;
 }
 
 .gradients-container {
@@ -180,11 +180,20 @@ a,
 }
 
 .fading-box {
-  /* width: 200px;
-  height: 100px;
-  background: linear-gradient(to right, #ff5733, #ff8c42); */
-  
-  /* Masque avec un dégradé qui fait disparaître progressivement la div */
-  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1), rgba(0,0,0,0));
+  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1), rgba(0,0,0,1), rgba(0,0,0,1), rgba(0,0,0,0));
   mask-image: linear-gradient(to right, rgba(0,0,0,1), rgba(0,0,0,1), rgba(0,0,0,1), rgba(0,0,0,0));
+}
+
+.scrollBar::-webkit-scrollbar {
+  width: 6px;
+  height: 4px;
+  overflow: scroll;
+}
+.scrollBar::-webkit-scrollbar-thumb {
+  background-color: var(--scrollBar-color);
+  border-radius: 20px;
+}
+
+.trackProgressBar{
+
 }

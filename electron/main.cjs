@@ -8,11 +8,11 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 700,
+    width: 1100,
+    height: 600,
     webPreferences: {
       // preload: path.join(__dirname, 'preload.js'),
-      preload: path.resolve(__dirname, "preload.js"),
+      preload: path.resolve(__dirname, "preload.cjs"),
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: false,  // Désactive le sandboxing pour charger des fichiers locaux

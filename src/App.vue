@@ -13,18 +13,19 @@
     </div>
 
 
-    <div class="flex w-full h-[80%] p-1">
+    <div class="flex w-full h-[80vh] p-1">
       <SideBar class="h-full"/>
       <RouterView @update-tracks="updateTracks" class="grow h-full bg-black/30 p-2 border border-white/40 rounded-lg backdrop-blur-md"/>
     </div>
 
-    <Player class="w-full h-[20%]" :tracks="tracks" :restart="restart" :active="activeTrackId" @play-song="startPlaying"  @request-tracks="loadTracksFromRouter" />
+    <Player class="flex w-full h-[20vh] justify-center items-center" :tracks="tracks" :restart="restart" :active="activeTrackId" @play-song="startPlaying"  @request-tracks="loadTracksFromRouter" />
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
+import router from '@/router';
 import SideBar from './components/sideBar.vue';
 import Player from '@/components/player.vue';
 
@@ -64,6 +65,7 @@ function startPlaying(){
 }
 
 onMounted(async() => {
+  router.push('/settings')
 })
 
 </script>

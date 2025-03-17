@@ -531,15 +531,15 @@ const handleKeyPress = (event) => {
 onMounted(async () => {
   window.addEventListener("keydown", handleKeyPress);
 });
-// watch(() => props.tracks, (newVal) => {
-//   currentTrackIndex.value = 0;
-//   initAudio(false);
+watch(() => props.tracks, (newVal) => {
+  currentTrackIndex.value = 0;
+  initAudio(false);
 
-//   console.log("restart détecté, déclenchement de play-song", newVal);
-//   if (newVal) {
-//     emit("play-song"); // Déclenche la lecture
-//   }
-// });
+  console.log("restart détecté, déclenchement de play-song", newVal);
+  if (newVal) {
+    emit("play-song"); // Déclenche la lecture
+  }
+});
 
 // Ouvrir la boîte de dialogue de sélection de fichiers
 // async function openFileDialog() {

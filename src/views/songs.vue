@@ -50,19 +50,13 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import { parseBlob } from "music-metadata-browser";
+import { useMusicStore } from "@/assets/script"
 
 const emit = defineEmits(["update-tracks"]);
 
-var tracks = ref([
-  { title: 'Chanson 1', artist: 'Artiste 1', album: "", cover: "", src: './public/Musics/$ - 530.mp3' },
-  { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Gunna - Woke Up.mp3' },
-  { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Yeat - bigger thën everything.mp3' },
-  { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Chow Lee - swag it!.mp3' },
-  { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Luidji - Foufoune Palace.mp3' },
-  { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Foushee - Deep End.mp3' },
-  { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Smino - No L s.mp3' },
-  { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Cash Cobain - Dunk Contest.mp3' },
-  ])
+const musicStore = useMusicStore();
+
+var tracks = ref(musicStore.tracks)
 
 
 var tracksList = ref([])

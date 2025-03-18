@@ -197,3 +197,9 @@ body{
 .trackProgressBar{
 
 }
+
+.text-truncate p{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

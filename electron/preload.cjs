@@ -11,5 +11,6 @@ const { contextBridge, ipcRenderer } = require("electron");
 console.log("Preload chargé !"); // 🔍 Vérification
 
 contextBridge.exposeInMainWorld("electron", {
-  openFolderDialog: () => ipcRenderer.invoke("open-folder-dialog")
+  openFolderDialog: () => ipcRenderer.invoke("open-folder-dialog"),
+  readFile: (filePath) => ipcRenderer.invoke("read-file", filePath)
 });

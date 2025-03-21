@@ -203,3 +203,9 @@ body{
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.album-cover-shadow{
+  box-shadow:
+  2px -2px 0.6em rgb(27, 27, 27),
+  -2px 2px 0.6em rgb(27, 27, 27);
+}

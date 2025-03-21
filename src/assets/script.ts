@@ -28,24 +28,25 @@ interface Track {
 export const useMusicStore = defineStore("music", {
   state: () => ({
     tracks: [
-      { title: 'Chanson 1', artist: 'Artiste 1', album: "", cover: "", src: './public/Musics/$ - 530.mp3' },
-      { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Gunna - Woke Up.mp3' },
-      { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Yeat - bigger thën everything.mp3' },
-      { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Chow Lee - swag it!.mp3' },
-      { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Luidji - Foufoune Palace.mp3' },
-      { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Foushee - Deep End.mp3' },
-      { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Smino - No L s.mp3' },
-      { title: 'Chanson 2', artist: 'Artiste 2', album: "", cover: "", src: './public/Musics/Cash Cobain - Dunk Contest.mp3' },
+      { title: "Chargement...", artist: "Inconnu", album: "Inconnu", cover: "./public/Images/black.jpg", src: "" }
     ] as Track[], // Tableau typé de musiques
-    activeTrackId: 0 as number, // Index du morceau actif
+    activeTracks: [
+      { title: "Chargement...", artist: "Inconnu", album: "Inconnu", cover: "./public/Images/black.jpg", src: "" }
+    ] as Track[], // Tableau typé de musiques
+    activeTrackId: 0 as number,
+    trigger: false as boolean,
   }),
 
   actions: {
     setTracks(newTracks: Track[]) {
       this.tracks = newTracks;
     },
-    setActiveTrack(id: number) {
+    setActiveTrackId(id: number) {
       this.activeTrackId = id;
+      this.trigger = !this.trigger;
+    },
+    setActiveTracks(newTracks: Track[]) {
+      this.activeTracks = newTracks;
     }
   }
 });

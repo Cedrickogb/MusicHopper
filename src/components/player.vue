@@ -14,7 +14,7 @@
       <div class="flex w-full justify-between">
         <div class="flex w-[24%] space-x-3 items-center justify-center">
           <button @click="toggleShuffle">
-            <span class="flex">
+            <span class="flex" :class="`${shuffle ? `text-cyan-500` : `text-white`}`">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-6">
                 <path d="M18 4L21 7M21 7L18 10M21 7H17C16.0707 7 15.606 7 15.2196 7.07686C13.6329 7.39249 12.3925 8.63288 12.0769 10.2196C12 10.606 12 11.0707 12 12C12 12.9293 12 13.394 11.9231 13.7804C11.6075 15.3671 10.3671 16.6075 8.78036 16.9231C8.39397 17 7.92931 17 7 17H3M18 20L21 17M21 17L18 14M21 17H17C16.0707 17 15.606 17 15.2196 16.9231C15.1457 16.9084 15.0724 16.8917 15 16.873M3 7H7C7.92931 7 8.39397 7 8.78036 7.07686C8.85435 7.09158 8.92758 7.1083 9 7.12698" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -61,15 +61,15 @@
 
         <div class="relative flex w-[50%] bg-white/10 space-x-2 rounded-md p-1 items-center border border-white/20">
           <div class="group flex w-10 h-10 bg-black rounded-md overflow-hidden cursor-pointer">
-            <img class="w-full h-full" :src="currentTrack.cover" alt="">
+            <img v-if="currentTrack.artist != 'Inconnu'" class="w-full h-full" :src="currentTrack.cover" alt="">
 
-            <div class="group-hover:flex hidden absolute left-0 top-0 translate-x-[-25%] translate-y-[-102%] bg-white/20 w-72 h-72 p-[3px]  rounded-md">
+            <div v-if="currentTrack.artist != 'Inconnu'" class="group-hover:flex hidden absolute left-0 top-0 translate-x-[-25%] translate-y-[-102%] bg-white/20 w-72 h-72 p-[3px]  rounded-md">
               <img class="w-full h-full rounded-md" :src="currentTrack.cover" alt="">
             </div>
           </div>
           <div class="flex flex-col">
-            <p class="font-semibold">{{ currentTrack.title }}</p>
-            <span class="flex text-sm space-x-2"><p>{{ currentTrack.album }}</p><p>- {{ currentTrack.artist }}</p></span>
+            <p class="text-[0.75em] font-semibold">{{ currentTrack.title }}</p>
+            <span class="flex text-[0.65em] space-x-2"><p>{{ currentTrack.album }}</p><p>- {{ currentTrack.artist }}</p></span>
           </div>
         </div>
 
@@ -88,7 +88,7 @@
             </span>
           </button>
 
-          <input class="slider" type="range" v-model="volume" min="0" max="1" step="0.1" @input="setVolume" />
+          <input class="slider" type="range" v-model="volume" min="0" max="1" step="0.01" @input="setVolume" />
           
           <button @click="()=>{fullScreen = true}">
             <span class="flex">
@@ -212,7 +212,7 @@
             </span>
           </button>
 
-          <input class="slider grow" type="range" v-model="volume" min="0" max="1" step="0.1" @input="setVolume" />
+          <input class="slider grow" type="range" v-model="volume" min="0" max="1" step="0.01" @input="setVolume" />
         </div>
 
       </div>
@@ -225,6 +225,7 @@ import { onMounted, ref, watch, defineEmits } from 'vue';
 import { Howl, Howler } from 'howler';
 import { parseBlob } from "music-metadata-browser";
 import ColorThief from "colorthief"
+import { useMusicStore } from "@/assets/script"
 
 
 const props = defineProps({
@@ -240,6 +241,7 @@ var fullScreen = ref(false)
 const interval = ref();
 const progress = ref(0);
 const duration = ref(0);
+const volume = ref(0.2);
 const isPlaying = ref(false);
 const currentTime = ref("0:00");
 const totalTime = ref("0:00");
@@ -248,18 +250,15 @@ const loop = ref(false);
 const shuffle = ref(false);
 const sound = ref()
 
+Howler.volume(volume.value)
+
+const musicStore = useMusicStore();
+var tracks = ref(musicStore.tracks);
+
 const currentTrackColors = ref(['#2d302b', '#bba482', '#736d5b', '#91866d', '#847b6c'])
 const currentTrackMainColor = ref("")
+const currentTrack = ref(tracks.value[musicStore.activeTrackId]);
 
-const currentTrack = ref({
-  title: "Chargement...",
-  artist: "Inconnu",
-  album: "Inconnu",
-  cover: "./public/Images/black.jpg",
-  src: ""
-});
-
-// import { defineEmits } from "vue";
 
 const emit = defineEmits(["request-tracks", "play-song"]); // Déclare l'événement
 
@@ -274,7 +273,7 @@ const loadMetadata = async (index, validTrack) => {
   try {
     // console.log(index, validTrack, "9999")
     currentTrackIndex.value = index ? index : props.active
-    const track = props.tracks[currentTrackIndex.value];
+    const track = tracks.value[currentTrackIndex.value];
     currentTrack.value.src = track.src;
     if(track.src != ""){
       const response = await fetch(track.src);
@@ -305,26 +304,6 @@ const loadMetadata = async (index, validTrack) => {
     document.documentElement.style.setProperty('--color3', currentTrackColors.value[2]);
     document.documentElement.style.setProperty('--color4', currentTrackColors.value[3]);
     document.documentElement.style.setProperty('--color5', currentTrackColors.value[4]);
-    // var firstColors = document.getElementsByClassName("firstGradient")
-    // var secondColors = document.getElementsByClassName("secondGradient")
-    // var thirdColors = document.getElementsByClassName("thirdGradient")
-    // var fourthColors = document.getElementsByClassName("fourthGradient")
-    // var fivethColors = document.getElementsByClassName("fivethGradient")
-    // Array.from(firstColors).map(element => {
-    //   element.style.backgroundColor = currentTrackColors.value[0]
-    // });
-    // Array.from(secondColors).map(element => {
-    //   element.style.backgroundColor = currentTrackColors.value[1]
-    // });
-    // Array.from(thirdColors).map(element => {
-    //   element.style.backgroundColor = currentTrackColors.value[2]
-    // });
-    // Array.from(fourthColors).map(element => {
-    //   element.style.backgroundColor = currentTrackColors.value[3]
-    // });
-    // Array.from(fivethColors).map(element => {
-    //   element.style.backgroundColor = currentTrackColors.value[4]
-    // });
 
     console.log(currentTrackColors.value, "colorThief", currentTrackMainColor.value)
 
@@ -337,38 +316,38 @@ const loadMetadata = async (index, validTrack) => {
 };
 const initAudio = async (isPlaying, trackId) => {
 
-  if(trackId){
-    await loadMetadata(trackId);
-  }else{
-    await loadMetadata();
-  }
+  loadSongColor(currentTrack.value)
 
 
   if (sound.value) {
     sound.value.unload();
   }
 
-  sound.value = new Howl({
-    src: [currentTrack.value.src],
-    html5: true,
-    onload() {
-      duration.value = sound.value.duration();
-      totalTime.value = formatTime(duration.value);
-    },
-    onend() {
-      if (loop.value) {
-        play();
-      } else {
-        nextTrack();
+  if(currentTrack.value.src != ""){
+    sound.value = new Howl({
+      src: [currentTrack.value.src],
+      html5: true,
+      onload() {
+        duration.value = sound.value.duration();
+        totalTime.value = formatTime(duration.value);
+      },
+      onend() {
+        if (loop.value) {
+          play();
+        } else {
+          nextTrack();
+        }
       }
+    });
+  
+    if(isPlaying == true){
+      // console.log(currentTrack.value, "qdoqdio")
+      play();
     }
-  });
-
-  if(isPlaying == true){
-    // console.log(currentTrack.value, "qdoqdio")
-    play();
   }
 };
+
+
 
 const getPaletteColor = (src) => {
   return new Promise((resolve, reject) => {
@@ -415,7 +394,19 @@ const getDominantColor = (src) => {
     img.onerror = (err) => reject(err); // Gérer les erreurs de chargement d'image
   });
 };
+async function loadSongColor(song){
+  currentTrackColors.value = await getPaletteColor(song.cover)
+  currentTrackMainColor.value = await getDominantColor(song.cover)
+    
+  document.documentElement.style.setProperty('--color-bg1', currentTrackMainColor.value);
+  document.documentElement.style.setProperty('--color-bg2', currentTrackMainColor.value);
 
+  document.documentElement.style.setProperty('--color1', currentTrackColors.value[0]);
+  document.documentElement.style.setProperty('--color2', currentTrackColors.value[1]);
+  document.documentElement.style.setProperty('--color3', currentTrackColors.value[2]);
+  document.documentElement.style.setProperty('--color4', currentTrackColors.value[3]);
+  document.documentElement.style.setProperty('--color5', currentTrackColors.value[4]);
+}
 
 
 // sound.value = new Howl({
@@ -433,7 +424,6 @@ const getDominantColor = (src) => {
 //   }
 // });
 
-const volume = ref(0.2); // Volume contrôlé par l'utilisateur
 function formatTime(seconds){
   const minutes = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -460,17 +450,18 @@ function stop() {
 }
 const nextTrack = async () => {
   if (shuffle.value) {
-    currentTrackIndex.value = Math.floor(Math.random() * props.tracks.length);
+    currentTrackIndex.value = Math.floor(Math.random() * tracks.value.length);
   } else {
-    currentTrackIndex.value = (currentTrackIndex.value + 1) % props.tracks.length;
+    currentTrackIndex.value = (currentTrackIndex.value + 1) % tracks.value.length;
   }
+  currentTrack.value = tracks.value[currentTrackIndex.value]
 
-  // currentTrack.value = await loadMetadata(currentTrackIndex.value, props.tracks[currentTrackIndex.value])
   initAudio(true, currentTrackIndex.value);
 };
 // Passer au morceau précédent
 const prevTrack = () => {
-  currentTrackIndex.value = (currentTrackIndex.value - 1 + props.tracks.length) % props.tracks.length;
+  currentTrackIndex.value = (currentTrackIndex.value - 1 + tracks.value.length) % tracks.value.length;
+  currentTrack.value = tracks.value[currentTrackIndex.value]
   initAudio(true, currentTrackIndex.value);
 };
 
@@ -505,8 +496,6 @@ const updateProgress = () => {
 
 // Fonction pour jouer ou mettre en pause
 function togglePlay(){
-  console.log(props, "Lancement dans player")
-
   if (sound.value.playing()) {
     sound.value.pause();
     isPlaying.value = false;
@@ -519,8 +508,15 @@ function togglePlay(){
 };
 
 
-const files = ref([]);
+function getTrack(){
+  tracks.value = musicStore.activeTracks
+  currentTrackIndex.value = musicStore.activeTrackId
+  currentTrack.value = tracks.value[musicStore.activeTrackId];
 
+  console.log(tracks.value, currentTrack.value, "player start")
+
+  initAudio(true)
+}
 
 const handleKeyPress = (event) => {
   if (event.code === "Space") {
@@ -528,34 +524,18 @@ const handleKeyPress = (event) => {
     togglePlay();
   }
 };
+
 onMounted(async () => {
   window.addEventListener("keydown", handleKeyPress);
 });
-watch(() => props.tracks, (newVal) => {
-  currentTrackIndex.value = 0;
-  initAudio(false);
+watch(() => musicStore.activeTrackId, (activeTrackId) => {
+  // tracks.value = props.tracks
+  // currentTrackIndex.value = musicStore.activeTrackId
+  // currentTrack.value = tracks.value[musicStore.activeTrackId];
+  // initAudio(true);
+  getTrack()
 
-  console.log("restart détecté, déclenchement de play-song", newVal);
-  if (newVal) {
-    emit("play-song"); // Déclenche la lecture
-  }
+  console.log("new track", activeTrackId);
 });
 
-// Ouvrir la boîte de dialogue de sélection de fichiers
-// async function openFileDialog() {
-//   const filePaths = await window.electronAPI.openFileDialog();
-//   files.value = filePaths.map((path) => ({
-//     path,
-//     name: path.split('/').pop(), // Extraire le nom du fichier
-//   }));
-// }
-
-// // Jouer un fichier audio
-// function playFile(filePath) {
-//   const sound = new Howl({
-//     src: [filePath],
-//     html5: true,
-//   });
-//   sound.play();
-// }
 </script>

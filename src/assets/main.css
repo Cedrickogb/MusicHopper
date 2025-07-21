@@ -90,7 +90,7 @@ body{
   overflow: hidden;
   background: linear-gradient(80deg, var(--color-bg1), rgba(var(--color2), 0.9), rgba(var(--color3), 0.9), rgba(var(--color4), 0.9), rgba(var(--color5), 0.9));
   background-size: 200% 200%;
-  animation: gradientMoving 25s ease infinite;
+  animation: gradientMoving 10s ease infinite;
 }
 
 .gradients-container {

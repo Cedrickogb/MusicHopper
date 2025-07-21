@@ -27,7 +27,6 @@
                         <div v-if="album != undefined" class="flex space-x-2 items-center justify-between text-[0.76em]">
                             <div class="flex flex-col w-36 h-48 space-y-1 items-start justify-center">
                                 <div class="group relative flex w-36 h-36 bg-black rounded-md overflow-hidden">
-                                    <img v-if="album.cover == undefined" class="w-full h-full" src="./public/Images/black.jpg" alt="">
                                     <img v-if="album.cover != undefined" @click="selectAlbum(album)" class="w-full h-full" :src="album.cover" alt="">
 
                                     <span @click="playTrack(album.songs, false)" class="absolute bottom-1 left-1 hidden group-hover:flex justify-center items-center bg-zinc-900 text-white hover:bg-cyan-600 p-1.5 rounded-full z-10">
@@ -98,7 +97,7 @@
                         </div>
                     </div>
                 </div>
-          </div>
+            </div>
         </div>
     </div>
 </template>
@@ -106,7 +105,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import { parseBlob } from "music-metadata-browser";
-import { useMusicStore } from "@/assets/script"
+import { useMusicStore } from '@/assets/script';
 
 const emit = defineEmits(["update-tracks"]);
 
@@ -147,10 +146,9 @@ function selectAlbum(album){
 const loadTracks = (tracksTab, shuffle, index) => {
   const newTracks = tracksTab;
   musicStore.setActiveTracks(newTracks);
-  musicStore.setActiveTrackId(-99);
   musicStore.setActiveTrackId(index);
 
-  console.log(musicStore.activeTracks, "Albums", musicStore.activeTrackId)
+  console.log(musicStore.activeTracks, "albums", musicStore.activeTrackId)
 };
 function playTrack(tracks, shuffle, index){
     let validId = index ? index : 0

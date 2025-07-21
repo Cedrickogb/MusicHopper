@@ -34,99 +34,53 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref } from 'vue';
+import router from '@/router';
 import { parseBlob } from "music-metadata-browser";
-import { useMusicStore } from '@/assets/script';
+import { useMusicStore, loadMetadata } from '@/assets/script';
 
-var isloading = ref(false)
+const isloading = ref(false);
 const musicStore = useMusicStore();
 
-// Simulation : Fonction pour récupérer des musiques (remplace par ton code réel)
-const loadTracks = (tracksTab) => {
-  const newTracks = tracksTab;
-  musicStore.setTracks(newTracks);
+// Fonction principale de chargement avec métadonnées
+const loadTracks = async (tracksTab) => {
+  await musicStore.setTracks(tracksTab);
+  console.log(musicStore.tracks, "settings");
 
-  console.log(musicStore.tracks, "settings")
+  router.push('/songs')
 };
 
-const selectFolder = async () => {
-    isloading.value = true;
 
-    if (!window.electron) {
-        alert("Electron n'est pas disponible !");
-        return;
-    }
-
-    const files = await window.electron.openFolderDialog();
-    if (files) {
-        // tracks.value = files;
-        var validSongs = await initTrackList(files)
-        loadTracks(validSongs);
-
-        isloading.value = false
-        // console.log("Tracks chargés :", tracks.value); // 🔍 Vérifie si les fichiers sont bien reçus
-    }
-};
-
-const loadMetadata = async (track) => {
-  try {
-    // const track = props.tracks[currentTrackIndex.value];
-    let currentTrack = {
-      title: "Chargement...",
-      artist: "Inconnu",
-      album: "Inconnu",
-      cover: "",
-      track: {},
-      year: "",
-      src: ""
-    }
-    currentTrack.src = track.src;
-
-    
-    // const response = await fetch(track.src);
-    
-    // const blob = await response.blob();
-    // const metadata = await parseBlob(blob);
-    
-    const filePath = track.src.replace("file://", ""); // Nettoyer le chemin
-    const fileBuffer = await window.electron.readFile(filePath);
-
-    if (!fileBuffer) throw new Error("Impossible de lire le fichier");
-    
-    const metadata = await parseBlob(new Blob([fileBuffer]));
-    console.log(metadata, "Fetched")
-
-
-    // console.log(metadata)
-
-    currentTrack.title = metadata.common.title || track.title || "Titre inconnu";
-    currentTrack.artist = metadata.common.artist || track.artist || "Artiste inconnu";
-    currentTrack.album = metadata.common.album || track.album || "Album inconnu";
-    currentTrack.track = metadata.common.track || track.track || "Album inconnu";
-    currentTrack.year = metadata.common.year || track.year || "Album inconnu";
-
-    // Extraction de la cover si disponible
-    if (metadata.common.picture && metadata.common.picture.length > 0) {
-      const picture = metadata.common.picture[0];
-      const blobUrl = URL.createObjectURL(new Blob([picture.data], { type: picture.format }));
-      currentTrack.cover = blobUrl;
-    } else {
-      currentTrack.cover = track.cover || "./public/Images/black.jpg";
-    }
-
-    return currentTrack
-  } catch (error) {
-    console.error("Erreur lors du chargement des métadonnées :", error);
+// Convertir une liste de morceaux en liste enrichie avec métadonnées
+async function initTrackList(songs) {
+  const enriched = [];
+  for (const song of songs) {
+    const enrichedTrack = await loadMetadata(song);
+    if (enrichedTrack) enriched.push(enrichedTrack);
   }
+  return enriched;
+}
+
+// Sélection manuelle d’un dossier
+const selectFolder = async () => {
+  isloading.value = true;
+
+  if (!window.electron) {
+    alert("Electron n'est pas disponible !");
+    return;
+  }
+
+  const files = await window.electron.openFolderDialog();
+  if (files && files.length > 0) {
+    const validSongs = await initTrackList(files);
+    loadTracks(validSongs);
+  }
+
+  isloading.value = false;
 };
 
-async function initTrackList(songs){
-  var newTab = songs
-  for (const [index, song] of songs.entries()){
-    let newData = await loadMetadata(song)
-    newTab[index] = newData
-  };
+// Automatiquement vérifier si un dossier est déjà enregistré
+onMounted(async () => {
 
-  return newTab
-}
-</script>
+});
+</script> 

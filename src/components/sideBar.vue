@@ -62,7 +62,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { onMounted, ref, watch } from 'vue';
 import router from '@/router';
 

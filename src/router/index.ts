@@ -1,3 +1,4 @@
+import type { Component } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import Songs from '@/views/songs.vue'
@@ -17,49 +18,31 @@ const router = createRouter({
     {
       path: '/songs',
       name: 'songs',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: Songs,
+      component: Songs as Component,
     },
     {
       path: '/artists',
       name: 'artists',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: Artists,
+      component: Artists as Component,
     },
     {
       path: '/albums',
       name: 'albums',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: Albums,
+      component: Albums as Component,
     },
     {
       path: '/playlists',
       name: 'playlists',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: Playlists,
+      component: Playlists as Component,
     },
     {
       path: '/settings',
       name: 'settings',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: Settings,
+      component: Settings as Component,
     },
     {
       path: '/about',
       name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
   ],

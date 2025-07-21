@@ -63,7 +63,7 @@
           <div class="group flex w-10 h-10 bg-black rounded-md overflow-hidden cursor-pointer">
             <img v-if="currentTrack.artist != 'Inconnu'" class="w-full h-full" :src="currentTrack.cover" alt="">
 
-            <div v-if="currentTrack.artist != 'Inconnu'" class="group-hover:flex hidden absolute left-0 top-0 translate-x-[-25%] translate-y-[-102%] bg-white/20 w-72 h-72 p-[3px]  rounded-md">
+            <div v-if="currentTrack.artist != 'Inconnu'" class="group-hover:flex group-hover:opacity-100 hidden opacity-0 absolute left-0 top-0 translate-x-[-25%] translate-y-[-102%] bg-white/20 w-72 h-72 p-[3px] rounded-md ease-out transition-all duration-500">
               <img class="w-full h-full rounded-md" :src="currentTrack.cover" alt="">
             </div>
           </div>
@@ -109,7 +109,7 @@
       </svg>
     </span>
 
-    <div class="gradient-bg absolute top-0 left-0 w-full h-full bg-white/30 backdrop-blur-sm overflow-hidden">
+    <div class="big-gradient-bg absolute top-0 left-0 w-full h-full bg-white/30 backdrop-blur-sm overflow-hidden">
       <div :class="`absolute flex top-0 left-0 w-full h-full bg-black/50 blur-lg`"></div>
       <div :class="`g1 absolute flex top-0 left-0 w-[20em] h-full bg-[${currentTrackColors[0]}] blur-lg`"></div>
       <div :class="`g2 absolute flex top-[10%] left-[20%] w-[30em] h-[25em] bg-[${currentTrackColors[1]}] rounded-full blur-lg`"></div>
@@ -225,7 +225,7 @@ import { onMounted, ref, watch, defineEmits } from 'vue';
 import { Howl, Howler } from 'howler';
 import { parseBlob } from "music-metadata-browser";
 import ColorThief from "colorthief"
-import { useMusicStore } from "@/assets/script"
+import { useMusicStore } from '@/assets/script';
 
 
 const props = defineProps({
@@ -314,7 +314,7 @@ const loadMetadata = async (index, validTrack) => {
     console.error("Erreur lors du chargement des métadonnées :", error);
   }
 };
-const initAudio = async (isPlaying, trackId) => {
+const initAudio = async (isPlaying, track) => {
 
   loadSongColor(currentTrack.value)
 
@@ -343,6 +343,8 @@ const initAudio = async (isPlaying, trackId) => {
     if(isPlaying == true){
       // console.log(currentTrack.value, "qdoqdio")
       play();
+
+      musicStore.setActiveTrack({track: track, state: true})
     }
   }
 };
@@ -462,6 +464,7 @@ const nextTrack = async () => {
 const prevTrack = () => {
   currentTrackIndex.value = (currentTrackIndex.value - 1 + tracks.value.length) % tracks.value.length;
   currentTrack.value = tracks.value[currentTrackIndex.value]
+
   initAudio(true, currentTrackIndex.value);
 };
 
@@ -500,10 +503,14 @@ function togglePlay(){
     sound.value.pause();
     isPlaying.value = false;
     clearInterval(interval.value);
+
+    musicStore.setActiveTrack({track: currentTrack.value, state: false})
   } else {
     sound.value.play();
     isPlaying.value = true;
     interval.value = setInterval(updateProgress, 500);
+
+    musicStore.setActiveTrack({track: currentTrack.value, state: true})
   }
 };
 
@@ -514,8 +521,13 @@ function getTrack(){
   currentTrack.value = tracks.value[musicStore.activeTrackId];
 
   console.log(tracks.value, currentTrack.value, "player start")
+  setGlobalActiveTrack(currentTrack.value)
 
   initAudio(true)
+}
+
+function setGlobalActiveTrack(track){
+  musicStore.setActiveTrack(track)
 }
 
 const handleKeyPress = (event) => {
@@ -528,7 +540,7 @@ const handleKeyPress = (event) => {
 onMounted(async () => {
   window.addEventListener("keydown", handleKeyPress);
 });
-watch(() => musicStore.activeTrackId, (activeTrackId) => {
+watch(() => musicStore.trigger, (activeTrackId) => {
   // tracks.value = props.tracks
   // currentTrackIndex.value = musicStore.activeTrackId
   // currentTrack.value = tracks.value[musicStore.activeTrackId];

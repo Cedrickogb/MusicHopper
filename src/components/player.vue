@@ -1,5 +1,5 @@
 <template>
-  <div class="flex w-full bg-transparent justify-center items-center p-1">
+  <div class="flex w-full h-fit bg-transparent justify-center items-center p-1">
     <div class="flex flex-col w-full bg-transparent space-y-1 text-white p-2 rounded-md">
       <div class="flex w-full">
         <span class="flex w-[10%] justify-center items-center text-sm">
@@ -63,7 +63,7 @@
           </button>
         </div>
 
-        <div class="relative flex w-[50%] bg-white/10 space-x-2 rounded-md p-1 items-center border border-white/20">
+        <div class="relative flex w-[50%] bg-white/15 space-x-2 rounded-md p-1 items-center border border-white/20 inset-shadow-sm">
           <div class="group flex w-10 h-10 bg-black rounded-md overflow-hidden cursor-pointer">
             <img v-if="currentTrack.artist != 'Inconnu'" class="w-full h-full" :src="currentTrack.cover" alt="">
 

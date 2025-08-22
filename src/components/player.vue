@@ -5,7 +5,11 @@
         <span class="flex w-[10%] justify-center items-center text-sm">
           <p>{{currentTime}}</p>
         </span>
-        <input type="range" min="0" :max="duration" step="0.1" v-model="progress" @input="seek" class="trackProgressBar w-[80%]"    />
+        <!-- <div class="wrapper w-full"> -->
+          <!-- <div class="range"> -->
+            <input type="range" min="0" :max="duration" step="0.1" v-model="progress" @input="seek" class="trackProgressBar w-[80%]"    />
+          <!-- </div> -->
+        <!-- </div> -->
         <span class="flex w-[10%] justify-center items-center text-sm">
           <p>{{totalTime}}</p>
         </span>
@@ -102,7 +106,7 @@
     </div>
   </div>
 
-  <div v-if="fullScreen" class="absolute flex w-[100vw] h-[100vh] bg-black">
+  <div v-if="fullScreen" class="absolute flex w-[100vw] h-[100vh] bg-black mt-[36px]">
     <span @click="()=>{fullScreen = false}" class="group absolute top-2 left-2 bg-black/20 rounded-lg p-2 border border-white/20 text-white backdrop-blur-sm z-10 cursor-pointer transition-all">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3 group-hover:size-4 transition-all">
         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -220,334 +224,303 @@
   </div>
 </template>
   
-<script setup >
-import { onMounted, ref, watch, defineEmits } from 'vue';
+// Parties principales du composant Player mises à jour
+<script setup>
+import { onMounted, ref, watch, computed } from 'vue';
 import { Howl, Howler } from 'howler';
 import { parseBlob } from "music-metadata-browser";
 import ColorThief from "colorthief"
 import { useMusicStore } from '@/assets/script';
 
-
-const props = defineProps({
-  tracks: Array,
-  active: Number,
-  restart: Boolean,
-  playSong: Function
-});
-
-var fullScreen = ref(false)
-
-// Créez une instance Howl pour un fichier audio
-const interval = ref();
-const progress = ref(0);
-const duration = ref(0);
-const volume = ref(0.2);
-const isPlaying = ref(false);
-const currentTime = ref("0:00");
-const totalTime = ref("0:00");
-const currentTrackIndex = ref(0);
-const loop = ref(false);
-const shuffle = ref(false);
-const sound = ref()
-
-Howler.volume(volume.value)
-
 const musicStore = useMusicStore();
-var tracks = ref(musicStore.tracks);
 
-const currentTrackColors = ref(['#2d302b', '#bba482', '#736d5b', '#91866d', '#847b6c'])
-const currentTrackMainColor = ref("")
-const currentTrack = ref(tracks.value[musicStore.activeTrackId]);
+// Variables réactives locales au player
+const fullScreen = ref(false);
+const interval = ref();
+const sound = ref();
+const currentTrackColors = ref(['#2d302b', '#bba482', '#736d5b', '#91866d', '#847b6c']);
+const currentTrackMainColor = ref("");
 
+// Variables calculées basées sur le store global
+const currentTrack = computed(() => musicStore.activeTrack);
+const isPlaying = computed(() => musicStore.playbackState.isPlaying);
+const volume = computed({
+  get: () => musicStore.playbackState.volume,
+  set: (value) => {
+    musicStore.updatePlaybackState({ volume: value });
+    setVolume();
+  }
+});
+const progress = computed({
+  get: () => musicStore.playbackState.progress,
+  set: (value) => {
+    musicStore.updatePlaybackState({ progress: value });
+  }
+});
+const duration = computed(() => musicStore.playbackState.duration);
+const currentTime = computed(() => formatTime(musicStore.playbackState.currentTime));
+const totalTime = computed(() => formatTime(musicStore.playbackState.duration));
+const shuffle = computed(() => musicStore.playbackOptions.shuffle);
+const loop = computed(() => musicStore.playbackOptions.loop);
 
-const emit = defineEmits(["request-tracks", "play-song"]); // Déclare l'événement
+// Initialiser Howler avec le volume du store
+Howler.volume(musicStore.playbackState.volume);
 
-function fetchTracksFromParent() {
-  emit("request-tracks"); // Demande au parent de mettre à jour les tracks
-}
-function playSong() {
-  emit("play-song"); // Demande au parent de mettre à jour les tracks
-}
-
-const loadMetadata = async (index, validTrack) => {
+// Charger les métadonnées et initialiser l'audio
+const loadMetadata = async (track) => {
   try {
-    // console.log(index, validTrack, "9999")
-    currentTrackIndex.value = index ? index : props.active
-    const track = tracks.value[currentTrackIndex.value];
-    currentTrack.value.src = track.src;
-    if(track.src != ""){
+    if (!track || !track.src) return;
+
+    let currentTrack = { ...track };
+
+    if (track.src !== "") {
       const response = await fetch(track.src);
       const blob = await response.blob();
       const metadata = await parseBlob(blob);
-  
-      currentTrack.value.title = metadata.common.title || track.title || "Titre inconnu";
-      currentTrack.value.artist = metadata.common.artist || track.artist || "Artiste inconnu";
-      currentTrack.value.album = metadata.common.album || track.album || "Album inconnu";
-  
-      // Extraction de la cover si disponible
+
+      currentTrack.title = metadata.common.title || track.title || "Titre inconnu";
+      currentTrack.artist = metadata.common.artist || track.artist || "Artiste inconnu";
+      currentTrack.album = metadata.common.album || track.album || "Album inconnu";
+
       if (metadata.common.picture && metadata.common.picture.length > 0) {
         const picture = metadata.common.picture[0];
         const blobUrl = URL.createObjectURL(new Blob([picture.data], { type: picture.format }));
-        currentTrack.value.cover = blobUrl;
+        currentTrack.cover = blobUrl;
       } else {
-        currentTrack.value.cover = "./public/Images/black.jpg";
+        currentTrack.cover = "./public/Images/black.jpg";
       }
+
+      // Mettre à jour le store avec les métadonnées complètes
+      musicStore.activeTrack = currentTrack;
     }
-    currentTrackColors.value = await getPaletteColor(currentTrack.value.cover)
-    currentTrackMainColor.value = await getDominantColor(currentTrack.value.cover)
-    
-    document.documentElement.style.setProperty('--color-bg1', currentTrackMainColor.value);
-    document.documentElement.style.setProperty('--color-bg2', currentTrackMainColor.value);
 
-    document.documentElement.style.setProperty('--color1', currentTrackColors.value[0]);
-    document.documentElement.style.setProperty('--color2', currentTrackColors.value[1]);
-    document.documentElement.style.setProperty('--color3', currentTrackColors.value[2]);
-    document.documentElement.style.setProperty('--color4', currentTrackColors.value[3]);
-    document.documentElement.style.setProperty('--color5', currentTrackColors.value[4]);
+    // Charger les couleurs
+    if (currentTrack.cover) {
+      currentTrackColors.value = await getPaletteColor(currentTrack.cover);
+      currentTrackMainColor.value = await getDominantColor(currentTrack.cover);
+      loadSongColor();
+    }
 
-    console.log(currentTrackColors.value, "colorThief", currentTrackMainColor.value)
-
-
-    return currentTrack.value
-
+    return currentTrack;
   } catch (error) {
     console.error("Erreur lors du chargement des métadonnées :", error);
   }
 };
-const initAudio = async (isPlaying, track) => {
 
-  loadSongColor(currentTrack.value)
-
-
+// Initialiser l'audio avec Howler
+const initAudio = async (shouldPlay = false) => {
   if (sound.value) {
     sound.value.unload();
   }
 
-  if(currentTrack.value.src != ""){
-    sound.value = new Howl({
-      src: [currentTrack.value.src],
-      html5: true,
-      onload() {
-        duration.value = sound.value.duration();
-        totalTime.value = formatTime(duration.value);
-      },
-      onend() {
-        if (loop.value) {
-          play();
-        } else {
-          nextTrack();
-        }
-      }
-    });
-  
-    if(isPlaying == true){
-      // console.log(currentTrack.value, "qdoqdio")
-      play();
+  const track = musicStore.activeTrack;
+  if (!track.src) return;
 
-      musicStore.setActiveTrack({track: track, state: true})
+  // Charger les métadonnées d'abord
+  await loadMetadata(track);
+
+  sound.value = new Howl({
+    src: [track.src],
+    html5: true,
+    volume: musicStore.playbackState.volume,
+    onload() {
+      const dur = sound.value.duration();
+      musicStore.updatePlaybackState({ 
+        duration: dur,
+        isLoading: false 
+      });
+    },
+    onplay() {
+      musicStore.updatePlaybackState({ isPlaying: true, isPaused: false });
+      interval.value = setInterval(updateProgress, 500);
+    },
+    onpause() {
+      musicStore.updatePlaybackState({ isPlaying: false, isPaused: true });
+      clearInterval(interval.value);
+    },
+    onend() {
+      clearInterval(interval.value);
+      if (loop.value) {
+        play();
+      } else {
+        nextTrack();
+      }
+    },
+    onstop() {
+      clearInterval(interval.value);
+      musicStore.updatePlaybackState({ 
+        isPlaying: false, 
+        isPaused: false, 
+        currentTime: 0, 
+        progress: 0 
+      });
     }
+  });
+
+  if (shouldPlay) {
+    play();
   }
 };
 
+// Fonctions de contrôle audio
+const play = () => {
+  if (!sound.value) return;
+  sound.value.play();
+};
 
+const pause = () => {
+  if (!sound.value) return;
+  sound.value.pause();
+};
+
+const togglePlay = () => {
+  if (!sound.value) return;
+  
+  if (sound.value.playing()) {
+    sound.value.pause();
+  } else {
+    sound.value.play();
+  }
+};
+
+const nextTrack = () => {
+  musicStore.nextTrack();
+};
+
+const prevTrack = () => {
+  musicStore.prevTrack();
+};
+
+const toggleShuffle = () => {
+  musicStore.toggleShuffle();
+};
+
+const toggleLoop = () => {
+  musicStore.toggleLoop();
+};
+
+const setVolume = () => {
+  Howler.volume(musicStore.playbackState.volume);
+};
+
+const seek = (event) => {
+  if (!sound.value) return;
+  const newTime = parseFloat(event.target.value);
+  sound.value.seek(newTime);
+  musicStore.updatePlaybackState({ 
+    currentTime: newTime, 
+    progress: newTime 
+  });
+};
+
+// Mettre à jour la progression
+const updateProgress = () => {
+  if (!sound.value) return;
+  const time = sound.value.seek() || 0;
+  musicStore.updateProgress(time, sound.value.duration() || 0);
+};
+
+// Fonctions utilitaires
+const formatTime = (seconds) => {
+  if (isNaN(seconds) || !seconds) return "0:00";
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+};
 
 const getPaletteColor = (src) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'Anonymous'; // Utile pour éviter les erreurs CORS
+    img.crossOrigin = 'Anonymous';
     img.src = src;
 
     img.onload = () => {
       try {
         const colorThief = new ColorThief();
-        const colors = colorThief.getPalette(img, 5); // 5 couleurs dominantes
+        const colors = colorThief.getPalette(img, 5);
         const newColors = colors.map(color => `${color[0]}, ${color[1]}, ${color[2]}`);
-        // const hexColors = colors.map(color => 
-        //   `#${color[0].toString(16).padStart(2, '0')}${color[1].toString(16).padStart(2, '0')}${color[2].toString(16).padStart(2, '0')}`
-        // );
-
         resolve(newColors);
       } catch (error) {
         reject(error);
       }
     };
 
-    img.onerror = (err) => reject(err); // Gérer les erreurs de chargement d'image
+    img.onerror = (err) => reject(err);
   });
 };
+
 const getDominantColor = (src) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'Anonymous'; // Utile pour éviter les erreurs CORS
+    img.crossOrigin = 'Anonymous';
     img.src = src;
 
     img.onload = () => {
       try {
         const colorThief = new ColorThief();
-        const color = colorThief.getColor(img); // 5 couleurs dominantes
-        const rgbColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
-
+        const color = colorThief.getColor(img);
+        const rgbColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
         resolve(rgbColor);
       } catch (error) {
         reject(error);
       }
     };
 
-    img.onerror = (err) => reject(err); // Gérer les erreurs de chargement d'image
+    img.onerror = (err) => reject(err);
   });
 };
-async function loadSongColor(song){
-  currentTrackColors.value = await getPaletteColor(song.cover)
-  currentTrackMainColor.value = await getDominantColor(song.cover)
-    
+
+const loadSongColor = () => {
   document.documentElement.style.setProperty('--color-bg1', currentTrackMainColor.value);
   document.documentElement.style.setProperty('--color-bg2', currentTrackMainColor.value);
-
   document.documentElement.style.setProperty('--color1', currentTrackColors.value[0]);
   document.documentElement.style.setProperty('--color2', currentTrackColors.value[1]);
   document.documentElement.style.setProperty('--color3', currentTrackColors.value[2]);
   document.documentElement.style.setProperty('--color4', currentTrackColors.value[3]);
   document.documentElement.style.setProperty('--color5', currentTrackColors.value[4]);
-}
-
-
-// sound.value = new Howl({
-//   src: currentTrack.value.src, // Remplacez par le chemin de votre fichier audio
-//   html5: true, // Utilisez l'API audio HTML5 pour une meilleure compatibilité
-//   volume: 1, // Volume initial
-//   onload() {
-//     duration.value = sound.value.duration();
-//     totalTime.value = formatTime(duration.value);
-//   },
-//   onend() {
-//     isPlaying.value = false;
-//     progress.value = 0;
-//     currentTime.value = "0:00";
-//   }
-// });
-
-function formatTime(seconds){
-  const minutes = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
 };
 
-// Jouer l'audio
-function play(){
-  if (!sound.value) return;
-  sound.value.play();
-  isPlaying.value = true;
-  setInterval(updateProgress, 500);
-};
-
-const pause = () => {
-  if (!sound.value) return;
-  sound.value.pause();
-  isPlaying.value = false;
-};
-
-// Arrêter l'audio
-function stop() {
-  sound.value.stop();
-}
-const nextTrack = async () => {
-  if (shuffle.value) {
-    currentTrackIndex.value = Math.floor(Math.random() * tracks.value.length);
-  } else {
-    currentTrackIndex.value = (currentTrackIndex.value + 1) % tracks.value.length;
-  }
-  currentTrack.value = tracks.value[currentTrackIndex.value]
-
-  initAudio(true, currentTrackIndex.value);
-};
-// Passer au morceau précédent
-const prevTrack = () => {
-  currentTrackIndex.value = (currentTrackIndex.value - 1 + tracks.value.length) % tracks.value.length;
-  currentTrack.value = tracks.value[currentTrackIndex.value]
-
-  initAudio(true, currentTrackIndex.value);
-};
-
-// Activer/Désactiver la lecture en boucle
-const toggleLoop = () => {
-  loop.value = !loop.value;
-};
-// Activer/Désactiver le mode shuffle
-const toggleShuffle = () => {
-  shuffle.value = !shuffle.value;
-};
-
-// Régler le volume
-function setVolume() {
-  Howler.volume(volume.value);
-}
-
-
-// Changer la position du son
-function seek(event){
-  const newTime = parseFloat(event.target.value);
-  sound.value.seek(newTime);
-  progress.value = newTime;
-  currentTime.value = formatTime(newTime);
-};
-
-const updateProgress = () => {
-  const time = sound.value.seek();
-  progress.value = time;
-  currentTime.value = formatTime(time);
-};
-
-// Fonction pour jouer ou mettre en pause
-function togglePlay(){
-  if (sound.value.playing()) {
-    sound.value.pause();
-    isPlaying.value = false;
-    clearInterval(interval.value);
-
-    musicStore.setActiveTrack({track: currentTrack.value, state: false})
-  } else {
-    sound.value.play();
-    isPlaying.value = true;
-    interval.value = setInterval(updateProgress, 500);
-
-    musicStore.setActiveTrack({track: currentTrack.value, state: true})
-  }
-};
-
-
-function getTrack(){
-  tracks.value = musicStore.activeTracks
-  currentTrackIndex.value = musicStore.activeTrackId
-  currentTrack.value = tracks.value[musicStore.activeTrackId];
-
-  console.log(tracks.value, currentTrack.value, "player start")
-  setGlobalActiveTrack(currentTrack.value)
-
-  initAudio(true)
-}
-
-function setGlobalActiveTrack(track){
-  musicStore.setActiveTrack(track)
-}
-
+// Gestion des touches clavier
 const handleKeyPress = (event) => {
-  if (event.code === "Space") {
-    event.preventDefault(); // Empêcher le scroll de la page
+  if (event.code === "Space" && !event.target.matches('input, textarea, [contenteditable]')) {
+    event.preventDefault();
     togglePlay();
   }
 };
 
+// Lifecycle hooks
 onMounted(async () => {
   window.addEventListener("keydown", handleKeyPress);
-});
-watch(() => musicStore.trigger, (activeTrackId) => {
-  // tracks.value = props.tracks
-  // currentTrackIndex.value = musicStore.activeTrackId
-  // currentTrack.value = tracks.value[musicStore.activeTrackId];
-  // initAudio(true);
-  getTrack()
-
-  console.log("new track", activeTrackId);
+  
+  // Initialiser avec la musique active du store
+  if (musicStore.activeTrack.src) {
+    await initAudio(musicStore.playbackState.isPlaying);
+  }
 });
 
+// Watchers pour synchroniser avec le store
+watch(() => musicStore.trigger, async () => {
+  console.log("Nouvelle musique détectée dans le store");
+  musicStore.updatePlaybackState({ isLoading: true });
+  await initAudio(true);
+});
+
+// Watcher pour les changements de volume depuis le store
+watch(() => musicStore.playbackState.volume, (newVolume) => {
+  if (sound.value) {
+    Howler.volume(newVolume);
+  }
+});
+
+// Nettoyer lors du démontage
+import { onUnmounted } from 'vue';
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeyPress);
+  if (sound.value) {
+    sound.value.unload();
+  }
+  if (interval.value) {
+    clearInterval(interval.value);
+  }
+});
 </script>

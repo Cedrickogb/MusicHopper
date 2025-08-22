@@ -143,6 +143,14 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
+    // Configuration pour supprimer complètement la barre de titre
+    frame: false, // Supprime complètement le frame par défaut
+    // OR
+    titleBarStyle: 'hidden', // Hides the title bar but keeps window controls on macOS
+    // expose window controls in Windows/Linux
+    ...(process.platform !== 'darwin' ? { titleBarOverlay: true } : {}),
+    titleBarStyle: 'hiddenInset', // Similar to hidden but with traffic light controls inset on macOS
+
     width: 1100,
     height: 600,
     webPreferences: {
@@ -152,6 +160,8 @@ function createWindow() {
       sandbox: false,
       webSecurity: false
     },
+
+   
     // Ajout pour éviter l'écran blanc
     show: false
   });
@@ -297,6 +307,27 @@ app.whenReady().then(() => {
       console.error("Erreur lors de la lecture du fichier:", error);
       throw error;
     }
+  });
+
+  // Gestion des contrôles de fenêtre
+  ipcMain.handle('minimize-window', () => {
+    mainWindow.minimize();
+  });
+
+  ipcMain.handle('maximize-window', () => {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  });
+
+  ipcMain.handle('close-window', () => {
+    mainWindow.close();
+  });
+
+  ipcMain.handle('is-maximized', () => {
+    return mainWindow.isMaximized();
   });
 
   createWindow();

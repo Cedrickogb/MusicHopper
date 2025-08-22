@@ -36,8 +36,8 @@
                         <div v-for="(album, index) in selectedArtist.albums" :class="`w- bg-transparent p-1 rounded-md cursor-pointer`">
                             <div v-if="album != undefined" class="flex space-x-2 items-center justify-between text-[0.76em]">
                                 <div class="flex flex-col w-36 h-48 space-y-1 items-start justify-center">
-                                    <div class="group relative flex w-36 h-36 bg-black rounded-md overflow-hidden">
-                                        <img v-if="album.cover != undefined" @click="selectAlbum(album)" class="w-full h-full" :src="album.cover" alt="">
+                                    <div class="group relative flex w-36 h-36 bg-white/20 p-[2px] rounded-md overflow-hidden album-cover-shadow">
+                                        <img v-if="album.cover != undefined" @click="selectAlbum(album)" class="w-full h-full rounded-md" :src="album.cover" alt="">
     
                                         <span @click="playTrack(album.songs, false)" class="absolute bottom-1 left-1 hidden group-hover:flex justify-center items-center bg-zinc-900 text-white hover:bg-cyan-600 p-1.5 rounded-full z-10">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
@@ -55,8 +55,8 @@
                     </div>
 
                     <div v-show="showAlbum" class="absolute top-0 left-0 flex flex-col space-y-5 w-full h-full p-2 z-10">
-                        <div :class="`flex w-full space-x-6`">
-                            <div class="album-cover-shadow bg-white/20 w-72 h-72 p-[2px] rounded-lg overflow-hidden">
+                        <div :class="`flex flex-wrap w-full gap-4`">
+                            <div class="album-cover-shadow bg-white/20 w-60 h-60 p-[2px] rounded-lg overflow-hidden">
                                 <img :src="activeAlbum.cover" class="w-full h-full rounded-lg" alt="">
                             </div>
 
@@ -85,7 +85,11 @@
                         </div>
 
                         <div class="flex flex-col w-full space-y-1">
-                            <div v-for="(track, index) in activeAlbum.songs" @click="playTrack(activeAlbum.songs, false, index)"  :class="`flex w-full h-11 ${index%2 == 0 ? `bg-white/10` : `bg-transparent`} items-center p-1 px-2 rounded-md cursor-pointer`">
+                            <div v-for="(track, index) in activeAlbum.songs" 
+                                :key="track.id || index"
+                                @click="playTrack(activeAlbum.songs,  index)"  
+                                :class="`flex w-full h-11 ${index%2 == 0 ? `bg-white/10` : `bg-transparent`} ${isActiveTrack(track) ? 'bg-cyan-500/20 border border-cyan-500/30' : ''} items-center p-1 px-2 rounded-md cursor-pointer`"
+                            >
                                 <div v-if="track != undefined" class="flex w-full space-x-2 items-center justify-between text-[0.76em]">
                                     <div class="flex w-[25%] space-x-3 items-center justify-start">
                                         <p>{{ track.track.no }}</p>
@@ -101,7 +105,9 @@
                                     </div>
         
                                     <div class="flex w-[12.5%] justify-end items-center">
-                                        <p class="flex"> 0.00 </p>
+                                        <p class="flex"> 
+                                            {{ isActiveTrack(track) ? formattedTime.currentTime + ' - ' + formattedTime.totalTime : '0:00' }}    
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -115,7 +121,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { parseBlob } from "music-metadata-browser";
 import { useMusicStore } from '@/assets/script';
 
@@ -182,28 +188,37 @@ function selectAlbum(album){
     activeAlbum.value = album
 }
 
-const loadTracks = (tracksTab, shuffle, index) => {
-  const newTracks = tracksTab;
-  musicStore.setActiveTracks(newTracks);
-  musicStore.setActiveTrackId(index);
 
-  console.log(musicStore.activeTracks, "Artist", musicStore.activeTrackId)
+// Computed properties pour suivre l'état global
+const isPlaying = computed(() => musicStore.playbackState.isPlaying);
+const progressPercentage = computed(() => musicStore.getProgressPercentage);
+const formattedTime = computed(() => musicStore.getFormattedState);
+
+// Fonction pour vérifier si une musique est active
+const isActiveTrack = (track) => {
+  return musicStore.isActiveTrack(track);
 };
-function playTrack(tracks, shuffle, index){
-    let validId = index ? index : 0
-    loadTracks(tracks, shuffle, validId)
-}
+
+const playTrack = (albumTracks, index) => {
+  // Si c'est déjà la musique active, on toggle play/pause
+  if (isActiveTrack(albumTracks[index])) {
+    musicStore.togglePlay();
+  } else {
+    // Sinon on joue la nouvelle musique
+    musicStore.playTrack(albumTracks, index);
+  }
+};
 
 
 
 
 
 onMounted(async () => {
-  tracksList.value = musicStore.tracks
+    tracksList.value = musicStore.tracks;
 
-  tracksAlbums.value = groupSongsByAlbum(tracksList.value)
-  artists.value = groupSongsByArtist(tracksAlbums.value)
-  console.log("tracks", artists.value)
+    tracksAlbums.value = groupSongsByAlbum(tracksList.value)
+    artists.value = groupSongsByArtist(tracksAlbums.value)
+    console.log("tracks", artists.value)
   
 });
 

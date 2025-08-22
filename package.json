@@ -13,7 +13,7 @@
     "type-check": "vue-tsc --build",
     "electron:dev": "vite --host & wait-on http://localhost:5173 && electron .",
     "electron:serve": "electron .",
-    "electron:build": "run-p type-check \"build-only {@}\" -- & electron-builder",
+    "electron:build": "npm run build && electron-builder",
     "clean": "rimraf dist dist_electron"
   },
   "dependencies": {
@@ -55,16 +55,17 @@
       "output": "dist_electron"
     },
     "files": [
+      "electron/main.mjs",
+      "electron/preload.cjs",
       "dist/**/*",
-      "node_modules/**/*",
-      "dist_electron/**",
-      "dist/**",
-      "electron/**",
       "package.json"
     ],
+    "extraMetadata": {
+      "main": "electron/main.mjs"
+    },
     "win": {
       "target": "nsis",
-      "icon": "/favicon.ico"
+      "icon": "favicon.ico"
     },
     "nsis": {
       "oneClick": false,

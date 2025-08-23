@@ -46,7 +46,7 @@
     <div class="main-content flex w-full h-[calc(100vh-135px)] p-1">
       <SideBar class="h-full overflow-y-scroll scrollBar m-[1px]"/>
 
-      <RouterView  class="bg-black/30 p-2 border border-white/40 rounded-lg backdrop-blur-md"/>
+      <RouterView  class="bg-black/30 flex-grow p-2 border border-white/40 rounded-lg backdrop-blur-md"/>
     </div>
     
     <Player/>

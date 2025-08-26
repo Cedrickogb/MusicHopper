@@ -96,8 +96,15 @@
           
           <button @click="()=>{fullScreen = true}">
             <span class="flex">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 lg:size-6">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 lg:size-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+              </svg>
+            </span>
+          </button>
+          <button @click="showLyrics()">
+            <span class="flex">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 lg:size-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
               </svg>
             </span>
           </button>
@@ -127,7 +134,7 @@
     <div class="relative flex w-full lg:w-[60%] h-full bg-transparent justify-start items-center">
       <img class="fading-box lg:w-auto lg:h-full" :src="currentTrack.cover" alt="">
 
-      <div class="group flex flex-col space-y-1 absolute bottom-[10%] left-[50%] translate-x-[-50%] w-[45%] h-fit bg-black/30 rounded-xl p-2 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 hover:ease-in-out">
+      <div class="group flex flex-col space-y-1 absolute bottom-[15%] md:bottom-[10%] left-[50%] translate-x-[-50%] w-[45%] h-fit bg-black/30 rounded-xl p-2 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 hover:ease-in-out">
         
         <div class="flex w-full justify-between items-start p-1">
           <div class="flex flex-col">
@@ -220,6 +227,11 @@
         </div>
 
       </div>
+
+    </div>
+    <!-- class="absolute right-[0%] top-[50%] translate-y-[-50%] " -->
+    <div class="lg:w-[39%] h-full z-10 flex justify-center items-center">
+      <lyricsViewer :currentTrack="currentTrack" class=""/>
     </div>
   </div>
 </template>
@@ -231,6 +243,13 @@ import { Howl, Howler } from 'howler';
 import { parseBlob } from "music-metadata-browser";
 import ColorThief from "colorthief"
 import { useMusicStore } from '@/assets/script';
+import lyricsViewer from './lyricsViewer.vue';
+
+const emit = defineEmits(['toggle-section'])
+
+function showLyrics() {
+  emit('toggle-section')
+}
 
 const musicStore = useMusicStore();
 

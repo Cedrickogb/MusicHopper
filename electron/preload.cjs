@@ -9,8 +9,17 @@ contextBridge.exposeInMainWorld("electron", {
   validateFolder: () => ipcRenderer.invoke("validate-folder"),
 
   // Contrôles de fenêtre// Contrôles de fenêtre
+  // Ajout des contrôles de fenêtre
   minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
   maximizeWindow: () => ipcRenderer.invoke('maximize-window'),
   closeWindow: () => ipcRenderer.invoke('close-window'),
-  isMaximized: () => ipcRenderer.invoke('is-maximized'),
+  isMaximized: () => ipcRenderer.invoke('is-maximized')
+});
+
+// Si vous avez une autre exposition pour electronAPI
+contextBridge.exposeInMainWorld("electronAPI", {
+  minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
+  maximizeWindow: () => ipcRenderer.invoke('maximize-window'),
+  closeWindow: () => ipcRenderer.invoke('close-window'),
+  isMaximized: () => ipcRenderer.invoke('is-maximized')
 });

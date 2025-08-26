@@ -1,5 +1,5 @@
 <template>
-  <div v-if="playlist" class="text-white w-full h-full p-2">
+  <div v-if="playlist" class="text-white h-full p-2">
     <span @click="$router.push('/playlists')" class="group absolute top-2 left-2 bg-black/20 rounded-lg p-2 border border-white/20 text-white backdrop-blur-sm z-10 cursor-pointer transition-all">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3 group-hover:size-4 transition-all">
         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />

@@ -54,6 +54,7 @@
     "directories": {
       "output": "dist_electron"
     },
+    "icon": "assets/musicHopper", 
     "files": [
       "electron/main.mjs",
       "electron/preload.cjs",
@@ -63,9 +64,23 @@
     "extraMetadata": {
       "main": "electron/main.mjs"
     },
+    "extraResources": [
+      {
+        "from": "assets/",
+        "to": "assets/"
+      }
+    ],
     "win": {
-      "target": "nsis",
-      "icon": "favicon.ico"
+      "icon": "assets/musicHopper.ico",
+      "target": "nsis"
+    },
+    "mac": {
+      "icon": "assets/musicHopper.icns",
+      "category": "public.app-category.music"
+    },
+    "linux": {
+      "icon": "assets/musicHopper.png",
+      "target": "AppImage"
     },
     "nsis": {
       "oneClick": false,

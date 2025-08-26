@@ -1,6 +1,6 @@
 <template>
-    <div class="text-white w-full h-full p-2">
-        <div class="flex flex-col space-y-4 w-full h-full p-3">
+    <div class="text-white h-full p-2">
+        <div class="flex flex-col space-y-4 h-full p-3">
           <div class="flex items-center justify-between">
             <h1 class="text-4xl font-semibold">Songs</h1>
 
@@ -8,7 +8,7 @@
               <!-- Filtre par favoris -->
               <button 
                 @click="toggleFavoritesFilter"
-                :class="`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                :class="`flex items-center space-x-2 px-4 py-1 rounded-lg transition-colors ${
                   showOnlyFavorites ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-black/10 border border-white/20 hover:bg-white/10'
                 }`"
               >
@@ -20,7 +20,7 @@
 
               <!-- Menu de tri -->
               <div class="relative w-fit">
-                <div @click="()=>{showOrderOptions = !showOrderOptions}" class="flex space-x-2 justify-center items-center text-sm bg-black/10 rounded-lg p-2 px-4 border border-white/20 text-white backdrop-blur-sm cursor-pointer">
+                <div @click="()=>{showOrderOptions = !showOrderOptions}" class="flex space-x-2 justify-center items-center text-sm bg-black/10 rounded-lg py-1.5 px-4 border border-white/20 text-white backdrop-blur-sm cursor-pointer">
                   <span>Trier par</span>
                   <span class="flex">
                     <svg v-if="!showOrderOptions" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
@@ -63,16 +63,15 @@
             </div>
           </div>
 
-          <div class="flex w-full py-4 overflow-scroll scrollBar p-2">
-            <div class="flex flex-col w-full space-y-1">
+          <div class="flex py-4 overflow-auto scrollBar">
+            <div class="flex flex-col w-full space-y-1 p-1">
               <div v-for="(track, index) in displayedTracks" 
                 :key="track.id || index"
                 @click="playTrack(index)" 
                 :class="`w-full ${index%2 == 0 ? `bg-white/10` : `bg-transparent`} ${isActiveTrack(track) ? 'bg-cyan-500/20 border border-cyan-500/30' : ''} p-1 px-2 rounded-md cursor-pointer hover:bg-white/20 transition-colors group`"
               >
-              
-                <div v-if="track != undefined" class="flex space-x-2 items-center justify-between text-[0.76em] font-light">
-                  <div class="flex w-[25%] space-x-2 items-center justify-start text-truncate">
+                <div v-if="track != undefined" class="flex w-full items-center justify-between text-[0.76em] font-light">
+                  <div class="flex w-[24%] space-x-2 items-center justify-start text-truncate">
                     <p class="flex flex-shrink-0 w-8 justify-center">
                       {{ isActiveTrack(track) && !isPlaying ? '⏸️' : getTrackNumber(track, index) }}
                     </p>
@@ -143,118 +142,118 @@
                         ></div>
                       </div>
                     </div>
-                </div>
-                
-                <div class="flex text-white/50 w-[25%] justify-center items-center text-truncate">
-                  <p class="flex truncate" :class="isActiveTrack(track) ? 'text-cyan-300' : 'text-white/50'">{{ track.artist }}</p>
-                </div>
+                  </div>
 
-                <div class="flex text-white/50 w-[25%] justify-center items-center text-truncate">
-                  <p class="flex truncate" :class="isActiveTrack(track) ? 'text-cyan-300' : 'text-white/50'">{{ track.album }}</p>
-                </div>
+                  <div class="flex text-white/50 w-[24%] justify-center items-center truncate">
+                    <p class="flex truncate" :class="isActiveTrack(track) ? 'text-cyan-300' : 'text-white/50'">{{ track.artist }}</p>
+                  </div>
 
-                <div class="flex w-[12.5%] justify-end items-center">
+                  <div class="flex text-white/50 w-[24%] justify-center items-center text-truncate">
+                    <p class="flex truncate" :class="isActiveTrack(track) ? 'text-cyan-300' : 'text-white/50'">{{ track.album }}</p>
+                  </div>
+
+                  <div class="flex w-[12.5%] justify-end items-center">
                     <p class="flex text-white/50"> 
                       {{ isActiveTrack(track) ? formattedTime.currentTime + ' / ' + formattedTime.totalTime : formatDuration(track.duration || 0) }}
                     </p>
                   </div>
 
                   <div class="flex w-[12.5%] justify-end items-center">
-                      <div class="relative">
-                        <button 
-                          @click="(e)=>{e.stopPropagation(), toggleTrackMenu(track.id)}" 
-                          class="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded transition-all"
+                    <div class="relative">
+                      <button 
+                        @click="(e)=>{e.stopPropagation(), toggleTrackMenu(track.id)}" 
+                        class="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded transition-all"
+                      >
+                        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-4">
+                          <path d="M4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8Z" fill="currentColor"/>
+                          <path d="M10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6C9.10457 6 10 6.89543 10 8Z" fill="currentColor"/>
+                          <path d="M14 10C15.1046 10 16 9.10457 16 8C16 6.89543 15.1046 6 14 6C12.8954 6 12 6.89543 12 8C12 9.10457 12.8954 10 14 10Z" fill="currentColor"/>
+                        </svg>
+                      </button>
+
+                      <!-- Menu de la musique -->
+                      <div 
+                        v-if="activeTrackMenu === track.id" 
+                        class="absolute bottom-8 right-0 bg-black/90 backdrop-blur-sm border border-white/20 rounded-lg py-1 min-w-48 z-99"
+                        @click.stop
+                      >
+                        <!-- <button 
+                          @click="addToQueue(track)"
+                          class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
                         >
-                          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-4">
-                            <path d="M4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8Z" fill="currentColor"/>
-                            <path d="M10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6C9.10457 6 10 6.89543 10 8Z" fill="currentColor"/>
-                            <path d="M14 10C15.1046 10 16 9.10457 16 8C16 6.89543 15.1046 6 14 6C12.8954 6 12 6.89543 12 8C12 9.10457 12.8954 10 14 10Z" fill="currentColor"/>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                           </svg>
+                          <span>Ajouter à la file</span>
+                        </button> -->
+
+                        <button 
+                          @click="openPlaylistModal(track)"
+                          class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                          </svg>
+                          <span>Ajouter à une playlist</span>
                         </button>
 
-                        <!-- Menu de la musique -->
-                        <div 
-                          v-if="activeTrackMenu === track.id" 
-                          class="absolute bottom-8 right-0 bg-black/90 backdrop-blur-sm border border-white/20 rounded-lg py-1 min-w-48 z-99"
-                          @click.stop
+                        <button 
+                          @click="toggleFavoriteFromMenu(track)"
+                          class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
                         >
-                          <button 
-                            @click="addToQueue(track)"
-                            class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
+                          <svg 
+                            v-if="!isTrackFavorite(track.id)" 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke-width="1.5" 
+                            stroke="currentColor" 
+                            class="w-4 h-4"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                            <span>Ajouter à la file</span>
-                          </button>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                          </svg>
+                          <svg 
+                            v-else 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            viewBox="0 0 24 24" 
+                            fill="currentColor" 
+                            class="w-4 h-4 text-red-500"
+                          >
+                            <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
+                          </svg>
+                          <span>{{ isTrackFavorite(track.id) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}</span>
+                        </button>
 
-                          <button 
-                            @click="openPlaylistModal(track)"
-                            class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
-                            </svg>
-                            <span>Ajouter à une playlist</span>
-                          </button>
+                        <div class="border-t border-white/20 my-1"></div>
 
-                          <button 
-                            @click="toggleFavoriteFromMenu(track)"
-                            class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
-                          >
-                            <svg 
-                              v-if="!isTrackFavorite(track.id)" 
-                              xmlns="http://www.w3.org/2000/svg" 
-                              fill="none" 
-                              viewBox="0 0 24 24" 
-                              stroke-width="1.5" 
-                              stroke="currentColor" 
-                              class="w-4 h-4"
+                        <!-- Playlists contenant cette musique -->
+                        <div v-if="getTrackPlaylists(track.id).length > 0" class="px-3 py-1">
+                          <p class="text-xs text-white/50 mb-1">Dans les playlists :</p>
+                          <div class="space-y-1">
+                            <div 
+                              v-for="playlist in getTrackPlaylists(track.id).slice(0, 3)" 
+                              :key="playlist.id"
+                              class="text-xs text-cyan-400 truncate"
                             >
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                            </svg>
-                            <svg 
-                              v-else 
-                              xmlns="http://www.w3.org/2000/svg" 
-                              viewBox="0 0 24 24" 
-                              fill="currentColor" 
-                              class="w-4 h-4 text-red-500"
-                            >
-                              <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
-                            </svg>
-                            <span>{{ isTrackFavorite(track.id) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}</span>
-                          </button>
-
-                          <div class="border-t border-white/20 my-1"></div>
-
-                          <!-- Playlists contenant cette musique -->
-                          <div v-if="getTrackPlaylists(track.id).length > 0" class="px-3 py-1">
-                            <p class="text-xs text-white/50 mb-1">Dans les playlists :</p>
-                            <div class="space-y-1">
-                              <div 
-                                v-for="playlist in getTrackPlaylists(track.id).slice(0, 3)" 
-                                :key="playlist.id"
-                                class="text-xs text-cyan-400 truncate"
-                              >
-                                {{ playlist.name }}
-                              </div>
-                              <div v-if="getTrackPlaylists(track.id).length > 3" class="text-xs text-white/40">
-                                +{{ getTrackPlaylists(track.id).length - 3 }} autre(s)
-                              </div>
+                              {{ playlist.name }}
+                            </div>
+                            <div v-if="getTrackPlaylists(track.id).length > 3" class="text-xs text-white/40">
+                              +{{ getTrackPlaylists(track.id).length - 3 }} autre(s)
                             </div>
                           </div>
-
-                          <button 
-                            @click="showTrackDetails(track)"
-                            class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                            </svg>
-                            <span>Détails</span>
-                          </button>
                         </div>
+
+                        <button 
+                          @click="showTrackDetails(track)"
+                          class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                          </svg>
+                          <span>Détails</span>
+                        </button>
                       </div>
+                    </div>
                   </div>
                 </div>
               </div>

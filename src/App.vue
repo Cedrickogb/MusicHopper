@@ -43,13 +43,18 @@
     </div>
 
     <!-- Contenu principal avec marge pour la titlebar -->
-    <div class="main-content flex w-full h-[calc(100vh-135px)] p-1">
-      <SideBar class="h-full overflow-y-scroll scrollBar m-[1px]"/>
+    <div class="main-content flex w-full h-[calc(100vh-135px)] p-1 gap-1">
+      <SideBar class="h-full flex-none overflow-y-scroll scrollBar m-[1px]"/>
 
-      <RouterView  class="bg-black/30 flex-grow p-2 border border-white/40 rounded-lg backdrop-blur-md"/>
+      <RouterView  class="w-[50%] flex-auto bg-black/30 p-2 border border-white/40 rounded-lg backdrop-blur-md"/>
+
+      <div v-if="$router.currentRoute.value.name != 'settings' && lyricsOn" class=" w-[25%] bg-black/30 p-2 border border-white/40 rounded-lg backdrop-blur-md overflow-y-auto scrollBar">
+        <lyricsViewer :currentTrack="musicStore.activeTrack" :mini="true" />
+      </div>
+
     </div>
     
-    <Player/>
+    <Player @toggle-section="showLyrics"/>
 
   </div>
 </template>
@@ -61,6 +66,7 @@ import router from '@/router';
 import SideBar from './components/sideBar.vue';
 import Player from '@/components/player.vue';
 import { useMusicStore, loadMetadata } from '@/assets/script';
+import lyricsViewer from './components/lyricsViewer.vue';
 
 const musicStore = useMusicStore();
 
@@ -70,17 +76,34 @@ var tracks = ref([])
 var activeTrackId = ref(0)
 var restart = ref(false)
 
+var lyricsOn = ref(false)
+function showLyrics() {
+  lyricsOn.value = !lyricsOn.value
+}
+
 // Fonctions pour les contrôles de fenêtre
-const minimizeWindow = () => {
-  window.electronAPI?.minimizeWindow();
+const minimizeWindow = async () => {
+  try {
+    await window.electron?.minimizeWindow();
+  } catch (error) {
+    console.error('Erreur lors de la minimisation:', error);
+  }
 };
 
-const toggleMaximize = () => {
-  window.electronAPI?.maximizeWindow();
+const toggleMaximize = async () => {
+  try {
+    await window.electron?.maximizeWindow();
+  } catch (error) {
+    console.error('Erreur lors du toggle maximize:', error);
+  }
 };
 
-const closeWindow = () => {
-  window.electronAPI?.closeWindow();
+const closeWindow = async () => {
+  try {
+    await window.electron?.closeWindow();
+  } catch (error) {
+    console.error('Erreur lors de la fermeture:', error);
+  }
 };
 
 async function initTrackList(songs) {

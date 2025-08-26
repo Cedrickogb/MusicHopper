@@ -1,5 +1,5 @@
 <template>
-  <div class="text-white w-full h-full p-2">
+  <div class="text-white h-full p-2">
     <div class="flex flex-col space-y-4 w-full h-full p-3">
       <!-- En-tête avec bouton créer playlist -->
       <div class="flex items-center justify-between">

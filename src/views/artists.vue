@@ -1,5 +1,5 @@
 <template>
-    <div class="text-white w-full h-full p-2">
+    <div class="text-white h-full p-2">
         <div class="flex flex-col w-full h-full justify-between items-center p-3">
             <div class="flex w-full items-center justify-between">
                 <div class="flex justify-center items-center space-x-2">
@@ -96,7 +96,7 @@
                                         <p class="font-semibold">{{ track.title }}</p>
                                     </div>
                                     
-                                    <div class="flex text-white/50 w-[25%] justify-center items-center">
+                                    <div class="flex text-white/50 w-[25%] justify-center items-center truncate">
                                     <p class="flex">{{ track.artist }}</p>
                                     </div>
         

@@ -325,6 +325,7 @@
 
 import { defineStore } from 'pinia';
 import { parseBlob } from "music-metadata-browser";
+import { LyricsService } from '../api/lyricsService';
 
 var tracks = [];
 let electron = window.electron;
@@ -416,13 +417,19 @@ export const useMusicStore = defineStore("music", {
       year: 0,
       track: ""
     } as Track,
+
+    currentLyrics: {
+      lyrics: '',
+      source: ''
+    } as { lyrics: string; source: string } | null,
+    lyricsLoading: false,
     
     // État de lecture détaillé
     playbackState: {
       currentTime: 0,
       duration: 0,
       progress: 0,
-      volume: 0.2,
+      volume: 0.5,
       isPlaying: false,
       isPaused: false,
       isLoading: false
@@ -525,7 +532,12 @@ export const useMusicStore = defineStore("music", {
         totalTracksInPlaylists: state.playlists.reduce((sum, p) => sum + p.trackCount, 0),
         totalDuration: state.playlists.reduce((sum, p) => sum + p.duration, 0)
       };
-    }
+    },
+
+    hasLyrics: (state) => !!state.currentLyrics,
+    lyricsText: (state) => state.currentLyrics?.lyrics || '',
+    lyricsSource: (state) => state.currentLyrics?.source || ''
+
   },
 
   actions: {
@@ -653,6 +665,47 @@ export const useMusicStore = defineStore("music", {
 
     findTrack(trackId: string): Track | undefined {
       return this.tracks.find(track => track.id === trackId);
+    },
+
+    async fetchLyricsForCurrentTrack() {
+      if (!this.activeTrack?.artist || !this.activeTrack?.title) {
+        this.currentLyrics = null;
+        return;
+      }
+
+      this.lyricsLoading = true;
+      this.currentLyrics = null;
+
+      try {
+        const lyrics = await LyricsService.fetchLyrics(
+          this.activeTrack.artist,
+          this.activeTrack.title
+        );
+        this.currentLyrics = lyrics;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des paroles:', error);
+        this.currentLyrics = null;
+      } finally {
+        this.lyricsLoading = false;
+      }
+    },
+
+        // Cache des paroles pour éviter les requêtes répétées
+    lyricsCache: new Map(),
+
+    async fetchLyricsWithCache(artist: string, title: string) {
+      const cacheKey = `${artist}-${title}`.toLowerCase();
+      
+      if (this.lyricsCache.has(cacheKey)) {
+        return this.lyricsCache.get(cacheKey);
+      }
+
+      const lyrics = await LyricsService.fetchLyrics(artist, title);
+      
+      // Mettre en cache même si null pour éviter les requêtes inutiles
+      this.lyricsCache.set(cacheKey, lyrics);
+      
+      return lyrics;
     },
 
     // === NOUVELLES ACTIONS POUR PLAYLISTS ===

@@ -265,7 +265,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useMusicStore } from '@/assets/script';
+import { useMusicStore } from '../../assets/script';
 
 const router = useRouter();
 const musicStore = useMusicStore();

@@ -37,7 +37,7 @@
 import { onMounted, ref } from 'vue';
 import router from '@/router';
 import { parseBlob } from "music-metadata-browser";
-import { useMusicStore, loadMetadata } from '@/assets/script';
+import { useMusicStore, loadMetadata } from '../../assets/script';
 
 const isloading = ref(false);
 const musicStore = useMusicStore();

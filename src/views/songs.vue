@@ -339,7 +339,7 @@
 
 <script setup>
 import { onMounted, ref, computed, onUnmounted } from 'vue';
-import { useMusicStore } from '@/assets/script';
+import { useMusicStore } from '../../assets/script';
 import AddToPlaylistModal from '../components/AddToPlaylistModal.vue';
 
 const showOrderOptions = ref(false);

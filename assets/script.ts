@@ -325,7 +325,7 @@
 
 import { defineStore } from 'pinia';
 import { parseBlob } from "music-metadata-browser";
-import { LyricsService } from '../api/lyricsService';
+import { LyricsService } from '../src/api/lyricsService';
 
 var tracks = [];
 let electron = window.electron;

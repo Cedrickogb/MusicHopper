@@ -242,7 +242,7 @@ import { onMounted, ref, watch, computed } from 'vue';
 import { Howl, Howler } from 'howler';
 import { parseBlob } from "music-metadata-browser";
 import ColorThief from "colorthief"
-import { useMusicStore } from '@/assets/script';
+import { useMusicStore } from '../../assets/script';
 import lyricsViewer from './lyricsViewer.vue';
 
 const emit = defineEmits(['toggle-section'])

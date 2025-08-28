@@ -413,7 +413,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useMusicStore } from '@/assets/script';
+import { useMusicStore } from '../../assets/script';
 
 const route = useRoute();
 const router = useRouter();

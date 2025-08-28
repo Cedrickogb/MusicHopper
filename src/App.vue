@@ -65,7 +65,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import router from '@/router';
 import SideBar from './components/sideBar.vue';
 import Player from '@/components/player.vue';
-import { useMusicStore, loadMetadata } from '@/assets/script';
+import { useMusicStore, loadMetadata } from '../assets/script';
 import lyricsViewer from './components/lyricsViewer.vue';
 
 const musicStore = useMusicStore();

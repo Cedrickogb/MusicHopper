@@ -121,7 +121,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { useMusicStore } from '@/assets/script';
+import { useMusicStore } from '../../assets/script';
 
 const musicStore = useMusicStore();
 

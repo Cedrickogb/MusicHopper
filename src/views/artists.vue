@@ -123,7 +123,7 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue';
 import { parseBlob } from "music-metadata-browser";
-import { useMusicStore } from '@/assets/script';
+import { useMusicStore } from '../../assets/script';
 
 const emit = defineEmits(["update-tracks"]);
 

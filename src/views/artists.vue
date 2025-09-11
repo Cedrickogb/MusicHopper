@@ -106,7 +106,7 @@
         
                                     <div class="flex w-[12.5%] justify-end items-center">
                                         <p class="flex"> 
-                                            {{ isActiveTrack(track) ? formattedTime.currentTime + ' - ' + formattedTime.totalTime : '0:00' }}    
+                                            {{ isActiveTrack(track) ? formattedTime.currentTime + ' / ' + formattedTime.totalTime : formatDuration(track.duration || 0) }}
                                         </p>
                                     </div>
                                 </div>
@@ -193,6 +193,13 @@ function selectAlbum(album){
 const isPlaying = computed(() => musicStore.playbackState.isPlaying);
 const progressPercentage = computed(() => musicStore.getProgressPercentage);
 const formattedTime = computed(() => musicStore.getFormattedState);
+
+const formatDuration = (seconds) => {
+  if (!seconds) return '0:00';
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
+};
 
 // Fonction pour vérifier si une musique est active
 const isActiveTrack = (track) => {

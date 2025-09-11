@@ -91,7 +91,9 @@
                                 </div>
     
                                 <div class="flex w-[12.5%] justify-end items-center">
-                                    <p class="flex"> 0.00 </p>
+                                    <p class="flex"> 
+                                        {{ isActiveTrack(track) ? formattedTime.currentTime + ' / ' + formattedTime.totalTime : formatDuration(track.duration || 0) }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -112,6 +114,13 @@ const emit = defineEmits(["update-tracks"]);
 const musicStore = useMusicStore();
 var tracksList = ref([])
 var tracksAlbums = ref([])
+
+const formatDuration = (seconds) => {
+  if (!seconds) return '0:00';
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
+};
 
 function groupSongsByAlbum(songs) {
     const albumsMap = new Map();

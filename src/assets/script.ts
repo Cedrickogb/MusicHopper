@@ -450,6 +450,9 @@ export const useMusicStore = defineStore("music", {
     
     // Queue de lecture suivante
     playQueue: [] as Track[],
+
+    //couleur principale de l'app
+    mainColor: '#0891B2'
   }),
 
   getters: {
@@ -536,11 +539,18 @@ export const useMusicStore = defineStore("music", {
 
     hasLyrics: (state) => !!state.currentLyrics,
     lyricsText: (state) => state.currentLyrics?.lyrics || '',
-    lyricsSource: (state) => state.currentLyrics?.source || ''
+    lyricsSource: (state) => state.currentLyrics?.source || '',
+
 
   },
 
   actions: {
+
+    //changer la couleur principale
+    updateMainColor(color: string){
+      this.mainColor = color;
+    },
+
     // === ACTIONS MUSIQUES EXISTANTES ===
     async setTracks(newTracks: Track[]) {
       this.tracks = newTracks.map((track, index) => ({
@@ -690,7 +700,7 @@ export const useMusicStore = defineStore("music", {
       }
     },
 
-        // Cache des paroles pour éviter les requêtes répétées
+    // Cache des paroles pour éviter les requêtes répétées
     lyricsCache: new Map(),
 
     async fetchLyricsWithCache(artist: string, title: string) {

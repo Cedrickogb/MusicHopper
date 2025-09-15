@@ -2,15 +2,16 @@
   <div class="flex w-full h-fit bg-transparent justify-center items-center p-1">
     <div class="flex flex-col w-full bg-transparent space-y-1 text-white p-2 rounded-md">
       <div class="flex w-full">
-        <span class="flex w-[10%] justify-center items-center text-sm">
+        <span class="flex w-[10%] justify-center items-center text-sm font-light">
           <p>{{currentTime}}</p>
         </span>
         <!-- <div class="wrapper w-full"> -->
-          <!-- <div class="range"> -->
-            <input type="range" min="0" :max="duration" step="0.1" v-model="progress" @input="seek" class="trackProgressBar w-[80%]"    />
-          <!-- </div> -->
+          <div class="range w-[80%] relative">
+            <div class="slider-fill translate-y-[145%] rounded-l-xl" id="fill1"></div>
+            <input type="range" min="0" :max="duration" step="0.1" v-model="progress" @input="seek" id="slider1" class="custom-slider trackProgressBar w-full"    />
+          </div>
         <!-- </div> -->
-        <span class="flex w-[10%] justify-center items-center text-sm">
+        <span class="flex w-[10%] justify-center items-center text-sm font-light">
           <p>{{totalTime}}</p>
         </span>
       </div>
@@ -18,7 +19,7 @@
       <div class="flex w-full justify-between">
         <div class="flex w-[24%] gap-2 items-center justify-center">
           <button @click="toggleShuffle">
-            <span class="flex" :class="`${shuffle ? `text-cyan-500` : `text-white`}`">
+            <span class="flex" :class="`${shuffle ? `text-[${mainColor}]` : `text-white`}`">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-5 lg:size-6">
                 <path d="M18 4L21 7M21 7L18 10M21 7H17C16.0707 7 15.606 7 15.2196 7.07686C13.6329 7.39249 12.3925 8.63288 12.0769 10.2196C12 10.606 12 11.0707 12 12C12 12.9293 12 13.394 11.9231 13.7804C11.6075 15.3671 10.3671 16.6075 8.78036 16.9231C8.39397 17 7.92931 17 7 17H3M18 20L21 17M21 17L18 14M21 17H17C16.0707 17 15.606 17 15.2196 16.9231C15.1457 16.9084 15.0724 16.8917 15 16.873M3 7H7C7.92931 7 8.39397 7 8.78036 7.07686C8.85435 7.09158 8.92758 7.1083 9 7.12698" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -92,7 +93,7 @@
             </span>
           </button>
 
-          <input class="slider w-full" type="range" v-model="volume" min="0" max="1" step="0.01" @input="setVolume" />
+          <input class="slider w-full" id="" type="range" v-model="volume" min="0" max="1" step="0.01" @input="setVolume" />
           
           <button @click="()=>{fullScreen = true}">
             <span class="flex">
@@ -101,10 +102,10 @@
               </svg>
             </span>
           </button>
-          <button @click="showLyrics()">
+          <button @click="showLyrics(true)">
             <span class="flex">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 lg:size-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+              <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" fill="currentColor" class="size-6 lg:size-7" viewBox="0 0 50 50">
+                <path d="M 11.548828 7 C 7.9096188 7 4.9394531 9.9747091 4.9394531 13.617188 A 1.0001 1.0001 0 0 0 4.9394531 13.621094 L 5 31.363281 C 5.0021161 34.988084 7.8923322 38 11.535156 38 L 15.001953 38 L 15.013672 45.001953 A 1.0001 1.0001 0 0 0 16.767578 45.658203 L 23.457031 37.998047 L 38.482422 37.923828 C 42.072782 37.923829 45 35.155915 45 31.533203 L 45 13.617188 C 45 9.9747091 42.029834 7 38.390625 7 L 11.548828 7 z M 11.548828 9 L 38.390625 9 C 40.947416 9 43 11.053665 43 13.617188 L 43 31.533203 C 43 34.116491 41.088061 35.923828 38.482422 35.923828 A 1.0001 1.0001 0 0 0 38.478516 35.923828 L 22.994141 36 A 1.0001 1.0001 0 0 0 22.246094 36.341797 L 17.009766 42.339844 L 17 36.998047 A 1.0001 1.0001 0 0 0 16 36 L 11.535156 36 C 8.9833153 36 7 33.938796 7 31.359375 A 1.0001 1.0001 0 0 0 7 31.355469 L 6.9394531 13.615234 C 6.9405215 11.052645 8.9927034 9 11.548828 9 z M 19.5 17 C 18.413667 17 17.471495 17.449525 16.873047 18.130859 C 16.274598 18.812193 16 19.67721 16 20.529297 C 16 21.381384 16.274598 22.248354 16.873047 22.929688 C 17.471495 23.61102 18.413667 24.060547 19.5 24.060547 C 19.76416 24.060547 20.01943 24.032452 20.263672 23.982422 C 19.86497 24.7879 19.277944 25.598807 18.398438 26.261719 A 1.0001 1.0001 0 1 0 19.601562 27.859375 C 21.050213 26.767483 21.910987 25.36924 22.398438 24.109375 C 22.885888 22.84951 23.017752 21.747861 23 21.035156 A 1.0001 1.0001 0 0 0 22.974609 20.826172 C 22.982107 20.727041 23 20.62834 23 20.529297 C 23 19.67721 22.725402 18.812193 22.126953 18.130859 C 21.528505 17.449525 20.586333 17 19.5 17 z M 30.498047 17 C 29.411714 17 28.471495 17.449525 27.873047 18.130859 C 27.274598 18.812193 26.998047 19.67721 26.998047 20.529297 C 26.998047 21.381384 27.274598 22.248354 27.873047 22.929688 C 28.471495 23.61102 29.411714 24.060547 30.498047 24.060547 C 30.762207 24.060547 31.017476 24.032452 31.261719 23.982422 C 30.863017 24.7879 30.275991 25.598807 29.396484 26.261719 A 1.0005895 1.0005895 0 1 0 30.601562 27.859375 C 32.050213 26.767483 32.909034 25.36924 33.396484 24.109375 C 33.883935 22.84951 34.015799 21.747861 33.998047 21.035156 A 1.0001 1.0001 0 0 0 33.972656 20.826172 C 33.980154 20.727041 33.998047 20.62834 33.998047 20.529297 C 33.998047 19.67721 33.723448 18.812193 33.125 18.130859 C 32.526552 17.449525 31.58438 17 30.498047 17 z M 19.5 19 C 20.080333 19 20.388162 19.183756 20.623047 19.451172 C 20.857931 19.718588 21 20.116384 21 20.529297 C 21 20.94221 20.857931 21.341959 20.623047 21.609375 C 20.388162 21.876791 20.080333 22.060547 19.5 22.060547 C 18.919667 22.060547 18.611838 21.876791 18.376953 21.609375 C 18.142069 21.341959 18 20.94221 18 20.529297 C 18 20.116384 18.142069 19.718588 18.376953 19.451172 C 18.611838 19.183756 18.919667 19 19.5 19 z M 30.498047 19 C 31.07838 19 31.388162 19.183756 31.623047 19.451172 C 31.857931 19.718588 31.998047 20.116384 31.998047 20.529297 C 31.998047 20.94221 31.857931 21.341959 31.623047 21.609375 C 31.388162 21.876791 31.07838 22.060547 30.498047 22.060547 C 29.917714 22.060547 29.609884 21.876791 29.375 21.609375 C 29.140116 21.341959 28.998047 20.94221 28.998047 20.529297 C 28.998047 20.116384 29.140116 19.718588 29.375 19.451172 C 29.609884 19.183756 29.917714 19 30.498047 19 z"></path>
               </svg>
             </span>
           </button>
@@ -155,7 +156,10 @@
           <span class="flex w-[15%] justify-center items-center">
             <p>{{currentTime}}</p>
           </span>
-          <input type="range" min="0" :max="duration" step="0.1" v-model="progress" @input="seek" class="trackProgressBar w-[70%]"    />
+          <div class="relative w-[70%]">
+            <div class="slider-fill translate-y-[80%] rounded-l-xl" id="fill2"></div>
+            <input type="range" min="0" :max="duration" step="0.1" v-model="progress" @input="seek" id="slider2" class="custom-slider trackProgressBar"    />
+          </div>
           <span class="flex w-[15%] justify-center items-center">
             <p>{{totalTime}}</p>
           </span>
@@ -230,8 +234,16 @@
 
     </div>
     <!-- class="absolute right-[0%] top-[50%] translate-y-[-50%] " -->
-    <div class="lg:w-[39%] h-full z-10 flex justify-center items-center">
-      <lyricsViewer :currentTrack="currentTrack" class=""/>
+    <div v-if="activeLyrics" class="lg:w-[39%] h-full z-10 flex justify-center items-center">
+      <lyricsViewer :currentTrack="currentTrack" class="h-[90%]"/>
+    </div>
+
+    <div class="absolute bottom-10 right-5 z-20">
+      <button @click="showLyrics(false)" class="text-white" :class="`${activeLyrics ? `bg-cyan-500/60` : ``} rounded-lg p-0.5 backdrop-blur-sm transition-all duration-300 ease-in-out`">
+        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" fill="currentColor" class="size-4 lg:size-5" viewBox="0 0 50 50">
+          <path d="M 11.548828 7 C 7.9096188 7 4.9394531 9.9747091 4.9394531 13.617188 A 1.0001 1.0001 0 0 0 4.9394531 13.621094 L 5 31.363281 C 5.0021161 34.988084 7.8923322 38 11.535156 38 L 15.001953 38 L 15.013672 45.001953 A 1.0001 1.0001 0 0 0 16.767578 45.658203 L 23.457031 37.998047 L 38.482422 37.923828 C 42.072782 37.923829 45 35.155915 45 31.533203 L 45 13.617188 C 45 9.9747091 42.029834 7 38.390625 7 L 11.548828 7 z M 11.548828 9 L 38.390625 9 C 40.947416 9 43 11.053665 43 13.617188 L 43 31.533203 C 43 34.116491 41.088061 35.923828 38.482422 35.923828 A 1.0001 1.0001 0 0 0 38.478516 35.923828 L 22.994141 36 A 1.0001 1.0001 0 0 0 22.246094 36.341797 L 17.009766 42.339844 L 17 36.998047 A 1.0001 1.0001 0 0 0 16 36 L 11.535156 36 C 8.9833153 36 7 33.938796 7 31.359375 A 1.0001 1.0001 0 0 0 7 31.355469 L 6.9394531 13.615234 C 6.9405215 11.052645 8.9927034 9 11.548828 9 z M 19.5 17 C 18.413667 17 17.471495 17.449525 16.873047 18.130859 C 16.274598 18.812193 16 19.67721 16 20.529297 C 16 21.381384 16.274598 22.248354 16.873047 22.929688 C 17.471495 23.61102 18.413667 24.060547 19.5 24.060547 C 19.76416 24.060547 20.01943 24.032452 20.263672 23.982422 C 19.86497 24.7879 19.277944 25.598807 18.398438 26.261719 A 1.0001 1.0001 0 1 0 19.601562 27.859375 C 21.050213 26.767483 21.910987 25.36924 22.398438 24.109375 C 22.885888 22.84951 23.017752 21.747861 23 21.035156 A 1.0001 1.0001 0 0 0 22.974609 20.826172 C 22.982107 20.727041 23 20.62834 23 20.529297 C 23 19.67721 22.725402 18.812193 22.126953 18.130859 C 21.528505 17.449525 20.586333 17 19.5 17 z M 30.498047 17 C 29.411714 17 28.471495 17.449525 27.873047 18.130859 C 27.274598 18.812193 26.998047 19.67721 26.998047 20.529297 C 26.998047 21.381384 27.274598 22.248354 27.873047 22.929688 C 28.471495 23.61102 29.411714 24.060547 30.498047 24.060547 C 30.762207 24.060547 31.017476 24.032452 31.261719 23.982422 C 30.863017 24.7879 30.275991 25.598807 29.396484 26.261719 A 1.0005895 1.0005895 0 1 0 30.601562 27.859375 C 32.050213 26.767483 32.909034 25.36924 33.396484 24.109375 C 33.883935 22.84951 34.015799 21.747861 33.998047 21.035156 A 1.0001 1.0001 0 0 0 33.972656 20.826172 C 33.980154 20.727041 33.998047 20.62834 33.998047 20.529297 C 33.998047 19.67721 33.723448 18.812193 33.125 18.130859 C 32.526552 17.449525 31.58438 17 30.498047 17 z M 19.5 19 C 20.080333 19 20.388162 19.183756 20.623047 19.451172 C 20.857931 19.718588 21 20.116384 21 20.529297 C 21 20.94221 20.857931 21.341959 20.623047 21.609375 C 20.388162 21.876791 20.080333 22.060547 19.5 22.060547 C 18.919667 22.060547 18.611838 21.876791 18.376953 21.609375 C 18.142069 21.341959 18 20.94221 18 20.529297 C 18 20.116384 18.142069 19.718588 18.376953 19.451172 C 18.611838 19.183756 18.919667 19 19.5 19 z M 30.498047 19 C 31.07838 19 31.388162 19.183756 31.623047 19.451172 C 31.857931 19.718588 31.998047 20.116384 31.998047 20.529297 C 31.998047 20.94221 31.857931 21.341959 31.623047 21.609375 C 31.388162 21.876791 31.07838 22.060547 30.498047 22.060547 C 29.917714 22.060547 29.609884 21.876791 29.375 21.609375 C 29.140116 21.341959 28.998047 20.94221 28.998047 20.529297 C 28.998047 20.116384 29.140116 19.718588 29.375 19.451172 C 29.609884 19.183756 29.917714 19 30.498047 19 z"></path>
+        </svg>
+      </button>
     </div>
   </div>
 </template>
@@ -247,8 +259,13 @@ import lyricsViewer from './lyricsViewer.vue';
 
 const emit = defineEmits(['toggle-section'])
 
-function showLyrics() {
-  emit('toggle-section')
+let activeLyrics = ref(false);
+function showLyrics(outside) {
+  if (outside == true) {
+    emit('toggle-section')
+  }else{
+    activeLyrics.value = !activeLyrics.value;
+  }
 }
 
 const musicStore = useMusicStore();
@@ -259,6 +276,7 @@ const interval = ref();
 const sound = ref();
 const currentTrackColors = ref(['#2d302b', '#bba482', '#736d5b', '#91866d', '#847b6c']);
 const currentTrackMainColor = ref("");
+let mainColor = ref("#0891B2");
 
 // Variables calculées basées sur le store global
 const currentTrack = computed(() => musicStore.activeTrack);
@@ -432,11 +450,29 @@ const seek = (event) => {
   });
 };
 
+function updateSliderFill(slider, fill) {
+    const percentage = (slider.value / slider.max) * 100;
+    fill.style.width = percentage + '%';
+}
+
 // Mettre à jour la progression
 const updateProgress = () => {
   if (!sound.value) return;
   const time = sound.value.seek() || 0;
   musicStore.updateProgress(time, sound.value.duration() || 0);
+
+  const slider1 = document.getElementById('slider1');
+  const fill1 = document.getElementById('fill1');
+  const slider2 = document.getElementById('slider2');
+  const fill2 = document.getElementById('fill2');
+
+  if(slider1) {
+    updateSliderFill(slider1, fill1);
+    updateSliderFill(slider2, fill2);
+    // slider1.addEventListener('input', function() {
+    //     updateSliderFill(this, fill1);
+    // });
+  }
 };
 
 // Fonctions utilitaires
@@ -531,6 +567,11 @@ watch(() => musicStore.playbackState.volume, (newVolume) => {
   }
 });
 
+watch(() => musicStore.mainColor, (color) => {
+  mainColor = color;
+  console.log("Main color updated:", mainColor);
+});
+
 // Nettoyer lors du démontage
 import { onUnmounted } from 'vue';
 onUnmounted(() => {
@@ -543,3 +584,64 @@ onUnmounted(() => {
   }
 });
 </script>
+
+<style scoped>
+.slider-fill {
+    position: absolute;
+    width: 50%;
+    top: 0;
+    left: 0;
+    height: 7px;
+    background: #0891B2;
+    /* border-radius: 5px; */
+    pointer-events: none;
+    transition: width 0.1s ease;
+}
+
+.custom-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 7.5px;
+    border-radius: 5px;
+    background: #ebebeb; /* Couleur de la partie non remplie */
+    outline: none;
+    cursor: pointer;
+}
+
+/* Masquer le thumb pour WebKit */
+.custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0;
+    height: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+/* Masquer le thumb pour Firefox */
+.custom-slider::-moz-range-thumb {
+    width: 0;
+    height: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+/* Track pour Firefox - partie non remplie */
+.custom-slider::-moz-range-track {
+    width: 100%;
+    height: 7.5px;
+    border-radius: 5px;
+    background: #ebebeb;
+    outline: none;
+    border: none;
+}
+
+/* Partie remplie pour Firefox */
+.custom-slider::-moz-range-progress {
+    background: #4ecdc4;
+    height: 7.5px;
+    border-radius: 5px;
+}
+</style>

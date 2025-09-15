@@ -3,26 +3,36 @@
         <div class="flex flex-col space-y-2 w-full h-full p-3">
             <h1 class="text-4xl font-semibold">Settings</h1>
 
-            <div class="flex flex-col w-full text-xl space-y-3 overflow-auto">
-                <p>Libraries</p>
-                <div :class="`relative flex w-[50%] bg-white/10 space-x-2 text-base rounded-md p-2 px-4 justify-between items-center border border-white/20`">
-                    <div class="flex justify-center items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
-                        </svg>
-    
-                        <div>Location of the music library</div>
-                    </div>
-
-                    <div class="flex space-x-2 justify-center items-center">
-                        <span :class="`bg-cyan-600 text-white text-sm p-1 px-3 rounded-md cursor-pointer`" @click="selectFolder()">Add a folder</span>
-                        <span :class="`flex`">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                            </svg>
-                        </span>
-                    </div>
-                </div>
+            <div class="flex flex-col space-y-6 w-full h-full p-3 overflow-auto">
+              <div class="flex flex-col w-full text-xl space-y-3">
+                  <h3>Libraries</h3>
+                  <div :class="`relative flex w-[50%] bg-white/10 space-x-2 text-base rounded-md p-2 px-4 justify-between items-center border border-white/20`">
+                      <div class="flex justify-center items-center space-x-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                          </svg>
+      
+                          <div>Location of the music library</div>
+                      </div>
+  
+                      <div class="flex space-x-2 justify-center items-center">
+                          <span :class="`bg-cyan-600 text-white text-sm p-1 px-3 rounded-md cursor-pointer`" @click="selectFolder()">Add a folder</span>
+                          <span :class="`flex`">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                              </svg>
+                          </span>
+                      </div>
+                  </div>
+              </div>
+  
+              <div class="flex flex-col w-full text-xl space-y-3">
+                  <h3>Style</h3>
+                  <div>
+                    <p>Main color</p>
+                    <input type="color" class="w-20 h-10 rounded-md border-0 cursor-pointer" v-model="musicStore.mainColor" @input="musicStore.updateMainColor(musicStore.mainColor)" />
+                  </div>
+              </div>
             </div>
 
             <div v-if="isloading" class="absolute left-0 -top-[10%] flex justify-center items-center w-full h-[110%] bg-black/30 backdrop-blur-md  z-10">

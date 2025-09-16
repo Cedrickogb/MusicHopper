@@ -30,7 +30,7 @@
                   <h3>Style</h3>
                   <div>
                     <p>Main color</p>
-                    <input type="color" class="w-20 h-10 rounded-md border-0 cursor-pointer" v-model="musicStore.mainColor" @input="musicStore.updateMainColor(musicStore.mainColor)" />
+                    <input type="color" class="w-20 h-10 rounded-md border-0 cursor-pointer" v-model="musicStore.mainColor" @change="changeAppMainColor('main')" />
                   </div>
               </div>
             </div>
@@ -89,6 +89,14 @@ const selectFolder = async () => {
   isloading.value = false;
 };
 
+//function pour le cahngement des couleur de l'app
+function changeAppMainColor(type) {
+  if (type === 'main') {
+    musicStore.updateMainColor(musicStore.mainColor)
+    document.documentElement.style.setProperty('--scrollBar-color', musicStore.mainColor);
+    // document.documentElement.style.setProperty('--main-color', musicStore.mainColor);
+  }
+}
 // Automatiquement vérifier si un dossier est déjà enregistré
 onMounted(async () => {
 

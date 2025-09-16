@@ -1,6 +1,9 @@
 <template>
   <div v-if="isVisible" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="close">
-    <div class="bg-gray-800 rounded-lg p-4 max-w-md w-[80%] max-h-[90%] flex flex-col">
+    <div
+      :style="{ '--main-color': mainColor }"
+      class="bg-zinc-800 rounded-lg p-4 max-w-md w-[80%] max-h-[90%] flex flex-col"
+    >
       <h2 class="text-xl font-semibold mb-4">
         Ajouter "{{ trackToAdd?.title }}" à une playlist
       </h2>
@@ -9,7 +12,7 @@
       <div class="mb-4 space-y-1">
         <button 
           @click="showCreateNew = !showCreateNew"
-          class="w-full flex items-center justify-between p-2 px-3 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg transition-colors"
+          class="w-full flex items-center justify-between p-2 px-3 bg-[var(--main-color)]/20 hover:bg-[var(--main-color)]/30 rounded-lg transition-colors"
         >
           <div class="flex items-center space-x-3">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
@@ -30,12 +33,12 @@
         </button>
         
         <!-- Formulaire de création -->
-        <div v-if="showCreateNew" class="p-2 px-3 bg-gray-700 rounded-lg space-y-3">
+        <div v-if="showCreateNew" class="p-2 px-3 bg-zinc-700 rounded-lg space-y-3">
           <input 
             v-model="newPlaylistName"
             type="text" 
             placeholder="Nom de la playlist"
-            class="w-full bg-gray-600 border border-gray-500 text-sm rounded px-3 py-2 focus:outline-none focus:border-cyan-500"
+            class="w-full bg-zinc-600 border border-zinc-500 text-sm rounded px-3 py-2 focus:outline-none focus:border-[var(--main-colr)]"
             @keyup.enter="createAndAdd"
           />
           <div class="flex justify-end space-x-2 text-xs">
@@ -48,7 +51,7 @@
             <button 
               @click="createAndAdd"
               :disabled="!newPlaylistName.trim()"
-              class="px-3 py-1 bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
+              class="px-3 py-1 bg-[var(--main-color)]/80 hover:bg-[var(--main-colr)] disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
             >
               Créer et ajouter
             </button>
@@ -120,10 +123,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useMusicStore } from '@/assets/script';
 
+
 const musicStore = useMusicStore();
+let mainColor = ref("#0891B2");
 
 // Props et Events
 const props = defineProps({
@@ -209,13 +214,18 @@ const close = () => {
   newPlaylistName.value = '';
   emit('close');
 };
-
+onMounted(async () => {
+  mainColor.value = musicStore.mainColor
+});
 // Watchers
 watch(() => props.isVisible, (visible) => {
   if (!visible) {
     showCreateNew.value = false;
     newPlaylistName.value = '';
   }
+});
+watch(() => musicStore.mainColor, (color) => {
+  mainColor = color;
 });
 </script>
 

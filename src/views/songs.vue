@@ -68,10 +68,14 @@
               <div v-for="(track, index) in displayedTracks" 
                 :key="track.id || index"
                 @click="playTrack(index)" 
-                :class="`w-full ${index%2 == 0 ? `bg-white/10` : `bg-transparent`} ${isActiveTrack(track) ? 'bg-cyan-500/20 border border-cyan-500/30' : ''} p-1 px-2 rounded-md cursor-pointer hover:bg-white/20 transition-colors group`"
+                :style="{ '--main-color': isActiveTrack(track) ? mainColor : 'transparent' }"
+                :class="`w-full ${index%2 == 0 ? `bg-white/10` : `bg-transparent`} bg-[var(--main-color)]/20 border border-[var(--main-color)]/30  p-1 px-2 rounded-md cursor-pointer hover:bg-white/20 transition-colors group`"
               >
                 <div v-if="track != undefined" class="flex w-full items-center justify-between text-[0.76em] font-light">
-                  <div class="flex w-[24%] space-x-2 items-center justify-start text-truncate">
+                  <div 
+                    :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }"
+                    class="flex w-[24%] space-x-2 items-center justify-start text-truncate"
+                  >
                     <p class="flex flex-shrink-0 w-8 justify-center">
                       {{ isActiveTrack(track) && !isPlaying ? '⏸️' : getTrackNumber(track, index) }}
                     </p>
@@ -81,7 +85,7 @@
                     </div>
                     
                     <!-- Indicateur de lecture -->
-                    <span v-if="isActiveTrack(track)" class="text-cyan-500 flex-shrink-0">
+                    <span v-if="isActiveTrack(track)" class="text-[var(--text-color)] flex-shrink-0">
                       <svg v-if="isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="size-7 animate-pulse" style="shape-rendering: auto; display: block; background: transparent;">
                         <g>
                           <rect fill="currentColor" height="40" width="14" y="30" x="18">
@@ -130,26 +134,38 @@
                       </svg>
                     </button>
                     
-                    <div class="flex flex-col min-w-0 flex-1">
-                      <p class="flex font-medium truncate" :class="isActiveTrack(track) ? 'text-cyan-400' : 'text-white'">
+                    <div 
+                      class="flex flex-col min-w-0 flex-1"
+                    >
+                      <p class="flex font-medium text-[var(--text-color)]/90 truncate" >
                         {{ track.title }}
                       </p>
                       <!-- Barre de progression pour la musique active -->
                       <div v-if="isActiveTrack(track)" class="w-full bg-white/20 rounded-full h-1 mt-1">
                         <div 
-                          class="bg-cyan-500 h-full rounded-full transition-all duration-300"
+                          class="bg-[var(--text-color)] h-full rounded-full transition-all duration-300"
                           :style="{ width: progressPercentage + '%' }"
                         ></div>
                       </div>
                     </div>
                   </div>
 
-                  <div class="flex text-white/50 w-[24%] justify-center items-center truncate">
-                    <p class="flex truncate" :class="isActiveTrack(track) ? 'text-cyan-300' : 'text-white/50'">{{ track.artist }}</p>
+                  <div class="flex w-[24%] justify-center items-center truncate">
+                    <p
+                      :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }"
+                      class="flex truncate text-[var(--text-color)]/70"
+                    >
+                      {{ track.artist }}
+                    </p>
                   </div>
 
-                  <div class="flex text-white/50 w-[24%] justify-center items-center text-truncate">
-                    <p class="flex truncate" :class="isActiveTrack(track) ? 'text-cyan-300' : 'text-white/50'">{{ track.album }}</p>
+                  <div class="flex w-[24%] justify-center items-center text-truncate">
+                    <p
+                      :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }"
+                      class="flex truncate text-[var(--text-color)]/80"
+                    >
+                      {{ track.album }}
+                    </p>
                   </div>
 
                   <div class="flex w-[12.5%] justify-end items-center">
@@ -233,7 +249,7 @@
                             <div 
                               v-for="playlist in getTrackPlaylists(track.id).slice(0, 3)" 
                               :key="playlist.id"
-                              class="text-xs text-cyan-400 truncate"
+                              class="text-xs text-[var(--text-color)] truncate"
                             >
                               {{ playlist.name }}
                             </div>
@@ -262,7 +278,7 @@
         </div>
 
         <!-- Toast de notification -->
-        <div v-if="showToast" class="fixed bottom-20 right-4 bg-gray-800 border border-white/20 rounded-lg p-3 z-50 animate-slide-up">
+        <div v-if="showToast" class="fixed bottom-20 right-4 bg-zinc-800 border border-white/20 rounded-lg p-3 z-50 animate-slide-up">
           <p class="text-sm text-white">{{ toastMessage }}</p>
         </div>
 
@@ -276,10 +292,10 @@
 
         <!-- Modal de détails de la musique -->
         <div v-if="showDetailsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="showDetailsModal = false">
-          <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full">
+          <div class="bg-zinc-800 rounded-lg p-6 max-w-md w-full max-h-[90%] overflow-y-scroll scrollBar">
             <h2 class="text-xl font-semibold mb-4">Détails de la musique</h2>
             
-            <div v-if="selectedTrack" class="space-y-4">
+            <div v-if="selectedTrack" class="space-y-4 text-sm">
               <div class="flex items-center space-x-4">
                 <div class="w-16 h-16 bg-gray-700 rounded overflow-hidden flex-shrink-0">
                   <img v-if="selectedTrack.cover" :src="selectedTrack.cover" :alt="selectedTrack.title" class="w-full h-full object-cover">
@@ -291,7 +307,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-4 text-sm">
+              <div class="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p class="text-white/50">Durée</p>
                   <p>{{ formatDuration(selectedTrack.duration || 0) }}</p>
@@ -316,7 +332,8 @@
                   <div 
                     v-for="playlist in getTrackPlaylists(selectedTrack.id)" 
                     :key="playlist.id"
-                    class="text-sm text-cyan-400 bg-white/5 rounded px-2 py-1"
+                    :style="{ '--text-color': mainColor }"
+                    class="text-sm text-[var(--text-color)]/80 bg-white/5 rounded px-2 py-1"
                   >
                     {{ playlist.name }}
                   </div>
@@ -324,7 +341,7 @@
               </div>
             </div>
             
-            <div class="flex justify-end space-x-3 mt-6">
+            <div class="flex justify-end space-x-3 mt-6 text-sm">
               <button 
                 @click="showDetailsModal = false"
                 class="px-4 py-2 text-gray-400 hover:text-white transition-colors"
@@ -338,7 +355,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed, onUnmounted } from 'vue';
+import { onMounted, ref, computed, onUnmounted, watch } from 'vue';
 import { useMusicStore } from '@/assets/script';
 import AddToPlaylistModal from '../components/AddToPlaylistModal.vue';
 
@@ -350,6 +367,7 @@ const showDetailsModal = ref(false);
 const selectedTrack = ref(null);
 const showToast = ref(false);
 const toastMessage = ref('');
+let mainColor = ref("#0891B2");
 
 const musicStore = useMusicStore();
 const tracksList = ref([]);
@@ -489,9 +507,16 @@ const handleClickOutside = (event) => {
   }
 };
 
+
+
 onMounted(async () => {
   tracksList.value = musicStore.tracks;
   document.addEventListener('click', handleClickOutside);
+  mainColor.value = musicStore.mainColor;
+});
+watch(() => musicStore.mainColor, (color) => {
+  mainColor = color;
+  console.log("Main color updated:", mainColor);
 });
 
 onUnmounted(() => {

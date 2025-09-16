@@ -46,7 +46,7 @@
     <div class="main-content flex w-full h-[calc(100vh-135px)] p-1 gap-1">
       <SideBar class="h-full flex-none overflow-y-scroll scrollBar m-[1px]"/>
 
-      <RouterView  class="w-[50%] flex-auto bg-black/30 p-2 border border-white/40 rounded-lg backdrop-blur-md"/>
+      <RouterView  class="w-[50%] flex-auto bg-black/40 p-2 border border-white/40 rounded-lg backdrop-blur-md"/>
 
       <div v-if="$router.currentRoute.value.name != 'settings' && lyricsOn" class=" w-[25%] bg-black/30 p-2 border border-white/40 rounded-lg backdrop-blur-md overflow-y-auto scrollBar">
         <lyricsViewer :currentTrack="musicStore.activeTrack" :mini="true" />

@@ -67,7 +67,7 @@
           </button>
         </div>
 
-        <div class="relative flex w-[50%] bg-white/15 space-x-2 rounded-md p-1 items-center border border-white/20 inset-shadow-sm">
+        <div class="relative flex w-[50%] bg-white/15 space-x-2 rounded-md p-1 items-center border border-white/20 inset-shadow-lg">
           <div class="group flex w-10 h-10 bg-black rounded-md overflow-hidden cursor-pointer">
             <img v-if="currentTrack.artist != 'Inconnu'" class="w-full h-full" :src="currentTrack.cover" alt="">
 
@@ -456,6 +456,7 @@ const seek = (event) => {
 function updateSliderFill(slider, fill) {
     const percentage = (slider.value / slider.max) * 100;
     fill.style.width = percentage + '%';
+    fill.style.background = mainColor.value;
 }
 
 // Mettre à jour la progression
@@ -470,8 +471,11 @@ const updateProgress = () => {
   const fill2 = document.getElementById('fill2');
 
   if(slider1) {
-    updateSliderFill(slider1, fill1);
-    updateSliderFill(slider2, fill2);
+    if(fullScreen.value){
+      updateSliderFill(slider2, fill2);
+    }else{
+      updateSliderFill(slider1, fill1);
+    }
     // slider1.addEventListener('input', function() {
     //     updateSliderFill(this, fill1);
     // });
@@ -554,6 +558,7 @@ onMounted(async () => {
   if (musicStore.activeTrack.src) {
     await initAudio(musicStore.playbackState.isPlaying);
   }
+  mainColor.value = musicStore.mainColor
 });
 
 // Watchers pour synchroniser avec le store

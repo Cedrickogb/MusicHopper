@@ -1,12 +1,15 @@
 <template>
-  <div class="text-white h-full p-2">
+  <div 
+    class="text-white h-full p-2"
+    :style="{ '--main-color': musicStore.mainColor }"
+  >
     <div class="flex flex-col space-y-4 w-full h-full p-3">
       <!-- En-tête avec bouton créer playlist -->
       <div class="flex items-center justify-between">
         <h1 class="text-4xl font-semibold">Playlists</h1>
         <button 
           @click="showCreateModal = true"
-          class="flex items-center space-x-2 bg-cyan-500 hover:bg-cyan-600 px-3.5 py-1.5 text-sm rounded-lg transition-colors"
+          class="flex items-center space-x-2 bg-[var(--main-color)] hover:bg-[var(--main-color)]/80 px-3.5 py-1.5 text-sm rounded-lg transition-alr cursor-pointer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -19,19 +22,19 @@
       <div class="flex flex-wrap gap-4">
         <div class="flex gap-2 md:block lg:gap-0 bg-white/10 rounded-lg p-1 px-2 md:p-3">
           <h3 class="text-xs md:text-sm font-medium">Total Playlists</h3>
-          <p class="text-xs md:text-xl text-cyan-400">{{ playlistStats.totalPlaylists }}</p>
+          <p class="text-xs md:text-xl text-[var(--main-color)]/90">{{ playlistStats.totalPlaylists }}</p>
         </div>
         <div class="flex gap-2 md:block lg:gap-0 bg-white/10 rounded-lg p-1 md:p-3">
           <h3 class="text-xs md:text-sm font-medium">Mes Playlists</h3>
-          <p class="text-xs md:text-xl text-cyan-400">{{ playlistStats.userPlaylists }}</p>
+          <p class="text-xs md:text-xl text-[var(--main-color)]/90">{{ playlistStats.userPlaylists }}</p>
         </div>
         <div class="flex gap-2 md:block lg:gap-0 bg-white/10 rounded-lg p-1 md:p-3">
           <h3 class="text-xs md:text-sm font-medium">Total Musiques</h3>
-          <p class="text-xs md:text-xl text-cyan-400">{{ playlistStats.totalTracksInPlaylists }}</p>
+          <p class="text-xs md:text-xl text-[var(--main-color)]/90">{{ playlistStats.totalTracksInPlaylists }}</p>
         </div>
         <div class="flex gap-2 md:block lg:gap-0 bg-white/10 rounded-lg p-1 md:p-3">
           <h3 class="text-xs md:text-sm font-medium">Durée Totale</h3>
-          <p class="text-xs md:text-xl text-cyan-400">{{ formatDuration(playlistStats.totalDuration) }}</p>
+          <p class="text-xs md:text-xl text-[var(--main-color)]/90">{{ formatDuration(playlistStats.totalDuration) }}</p>
         </div>
       </div>
 
@@ -121,7 +124,7 @@
             </div>
 
             <!-- Image de couverture -->
-            <div class="w-full aspect-square bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-lg mb-3 flex items-center justify-center">
+            <div class="w-full aspect-square bg-gradient-to-br from-[var(--main-color)]/20 to-purple-500/20 rounded-lg mb-3 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-white/50">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
               </svg>
@@ -144,7 +147,7 @@
 
             <!-- Badge pour playlists par défaut -->
             <div v-if="playlist.isDefault" class="absolute top-2 left-2">
-              <span class="bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded text-xs">
+              <span class="bg-[var(--main-color)]/20 text-[var(--main-color)] px-1.5 py-0.5 rounded text-xs">
                 Système
               </span>
             </div>
@@ -155,7 +158,7 @@
 
     <!-- Modal de création de playlist -->
     <div v-if="showCreateModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="showCreateModal = false">
-      <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full">
+      <div class="bg-zinc-800 rounded-lg p-6 max-w-md w-full">
         <h2 class="text-xl font-semibold mb-4">Créer une nouvelle playlist</h2>
         
         <div class="space-y-4">
@@ -165,7 +168,7 @@
               v-model="newPlaylistName"
               type="text" 
               placeholder="Ma super playlist"
-              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500"
+              class="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-[var(--main-color)]"
               @keyup.enter="createPlaylist"
             />
           </div>
@@ -176,12 +179,12 @@
               v-model="newPlaylistDescription"
               placeholder="Description de votre playlist..."
               rows="3"
-              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500 resize-none"
+              class="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-[var(--main-color)] resize-none"
             ></textarea>
           </div>
         </div>
         
-        <div class="flex justify-end space-x-3 mt-6">
+        <div class="flex justify-end space-x-3 mt-6 text-sm">
           <button 
             @click="showCreateModal = false"
             class="px-4 py-2 text-gray-400 hover:text-white transition-colors"
@@ -191,7 +194,7 @@
           <button 
             @click="createPlaylist"
             :disabled="!newPlaylistName.trim()"
-            class="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+            class="px-4 py-2 bg-[var(--main-color)] hover:bg-[var(--main-color)]/80 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
           >
             Créer
           </button>
@@ -280,6 +283,7 @@ const newPlaylistDescription = ref('');
 const renamePlaylistName = ref('');
 const renamePlaylistId = ref('');
 const playlistToDelete = ref(null);
+let mainColor = ref("#0891B2");
 
 // Computed
 const allPlaylists = computed(() => musicStore.playlists);
@@ -396,6 +400,7 @@ onMounted(() => {
   document.addEventListener('click', handleClickOutside);
   // Charger les playlists sauvegardées
   musicStore.loadPlaylistsFromStorage();
+  mainColor.value = musicStore.mainColor
 });
 
 onUnmounted(() => {

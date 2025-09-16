@@ -69,7 +69,7 @@
                 :key="track.id || index"
                 @click="playTrack(index)" 
                 :style="{ '--main-color': isActiveTrack(track) ? mainColor : 'transparent' }"
-                :class="`w-full ${index%2 == 0 ? `bg-white/10` : `bg-transparent`} bg-[var(--main-color)]/20 border border-[var(--main-color)]/30  p-1 px-2 rounded-md cursor-pointer hover:bg-white/20 transition-colors group`"
+                :class="`w-full ${index%2 == 0 ? `bg-white/10` : `bg-transparent`} bg-[var(--main-color)]/20 border-2 border-[var(--main-color)]/30  p-1 px-2 rounded-md cursor-pointer hover:bg-white/20 transition-colors group`"
               >
                 <div v-if="track != undefined" class="flex w-full items-center justify-between text-[0.76em] font-light">
                   <div 
@@ -153,7 +153,7 @@
                   <div class="flex w-[24%] justify-center items-center truncate">
                     <p
                       :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }"
-                      class="flex truncate text-[var(--text-color)]/70"
+                      class="flex truncate text-[var(--text-color)]/90"
                     >
                       {{ track.artist }}
                     </p>
@@ -162,7 +162,7 @@
                   <div class="flex w-[24%] justify-center items-center text-truncate">
                     <p
                       :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }"
-                      class="flex truncate text-[var(--text-color)]/80"
+                      class="flex truncate text-[var(--text-color)]/90"
                     >
                       {{ track.album }}
                     </p>

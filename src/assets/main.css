@@ -1,4 +1,6 @@
 @import './base.css';
+@import "tailwindcss";
+
 :root {
   --color-bg1: rgb(6, 10, 52);
   --color-bg2: rgb(107, 114, 141);

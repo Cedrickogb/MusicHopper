@@ -1,5 +1,9 @@
 import { app, BrowserWindow, dialog, ipcMain, protocol } from "electron";
 import path from "path";
+// --- DÉBUT AJOUT PERSISTANCE PLAYLIST ---
+// On importe 'fs' depuis 'fs.promises' pour la version asynchrone
+// import { promises as fs } from "fs"; 
+// --- FIN AJOUT PERSISTANCE PLAYLIST ---
 import fs from "fs";
 import Store from "electron-store";
 import { fileURLToPath } from 'url';
@@ -10,6 +14,10 @@ const __dirname = path.dirname(__filename);
 const store = new Store();
 
 let mainWindow;
+// --- DÉBUT AJOUT PERSISTANCE PLAYLIST ---
+// On définit le chemin du fichier JSON dans le dossier 'userData'
+const playlistsPath = path.join(app.getPath('userData'), 'playlists.json');
+// --- FIN AJOUT PERSISTANCE PLAYLIST ---
 
 function debugIconPaths() {
   const isDev = !app.isPackaged;
@@ -162,6 +170,36 @@ app.whenReady().then(() => {
     callback({ path: filePath });
   });
 
+  // --- DÉBUT AJOUT PERSISTANCE PLAYLIST ---
+
+// 1. Gérer la SAUVEGARDE (Version Synchrone)
+  ipcMain.handle('save-playlists', (event, playlistsData) => {
+    try {
+      fs.writeFileSync(playlistsPath, JSON.stringify(playlistsData, null, 2));
+      return { success: true };
+    } catch (error) {
+      console.error("Erreur (sync) lors de la sauvegarde des playlists :", error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // 2. Gérer le CHARGEMENT (Version Synchrone)
+  ipcMain.handle('load-playlists', () => {
+    try {
+      // On vérifie d'abord si le fichier existe
+      if (!fs.existsSync(playlistsPath)) {
+        return null; // Pas de fichier, c'est normal
+      }
+      const data = fs.readFileSync(playlistsPath, 'utf8');
+      return JSON.parse(data);
+    } catch (error) {
+      console.error("Erreur (sync) lors du chargement des playlists :", error);
+      return null;
+    }
+  });
+
+  // --- FIN AJOUT PERSISTANCE PLAYLIST ---
+
   // Gestion de l'ouverture de dossier
   ipcMain.handle("open-folder-dialog", async () => {
     try {
@@ -193,7 +231,7 @@ app.whenReady().then(() => {
   ipcMain.handle("validate-folder", async () => {
     try {
       const folder = store.get("musicFolder");
-      if (!folder || !fs.existsSync(folder)) {
+      if (!folder) {
         return { valid: false, reason: "missing" };
       }
     
@@ -205,7 +243,6 @@ app.whenReady().then(() => {
         return { valid: false, reason: "no-music" };
       }
     
-      // Si tout est OK
       const musics = files
         .filter(file => audioExtensions.includes(path.extname(file).toLowerCase()))
         .map(file => ({
@@ -215,6 +252,10 @@ app.whenReady().then(() => {
     
       return { valid: true, path: folder, musics };
     } catch (error) {
+      // 'fs.access' lèvera une erreur si le dossier n'existe pas
+      if (error.code === 'ENOENT') {
+        return { valid: false, reason: "missing" };
+      }
       console.error("Erreur lors de la validation du dossier:", error);
       return { valid: false, reason: "error" };
     }
@@ -223,7 +264,8 @@ app.whenReady().then(() => {
   // Lecture de fichier
   ipcMain.handle('read-file', async (event, filePath) => {
     try {
-      return await fs.promises.readFile(filePath);
+      // return await fs.promises.readFile(filePath);
+      return await fs.readFileSync(filePath);
     } catch (error) {
       console.error("Erreur lors de la lecture du fichier:", error);
       throw error;

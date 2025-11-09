@@ -1,328 +1,3 @@
-// import { defineStore } from 'pinia';
-// import { parseBlob } from "music-metadata-browser";
-
-// var tracks = [];
-// let electron = window.electron;
-
-// interface Track {
-//   artist: string;
-//   album: string;
-//   cover: string;
-//   title: string;
-//   src: string;
-//   year: number;
-//   track: string;
-//   id?: string; // Ajout d'un ID unique pour chaque track
-// }
-
-// interface PlaybackState {
-//   currentTime: number;
-//   duration: number;
-//   progress: number;
-//   volume: number;
-//   isPlaying: boolean;
-//   isPaused: boolean;
-//   isLoading: boolean;
-// }
-
-// export const useMusicStore = defineStore("music", {
-//   state: () => ({
-//     // Collection complète des musiques
-//     tracks: [
-//       { title: "Chargement...", artist: "Inconnu", album: "Inconnu", cover: "./public/Images/black.jpg", src: "" }
-//     ] as Track[],
-    
-//     // Playlist active (peut être différente de tracks selon le contexte)
-//     activeTracks: [
-//       { title: "Chargement...", artist: "Inconnu", album: "Inconnu", cover: "./public/Images/black.jpg", src: "" }
-//     ] as Track[],
-    
-//     // Index de la musique actuellement jouée dans activeTracks
-//     activeTrackId: 0 as number,
-    
-//     // Musique actuellement jouée (objet complet)
-//     activeTrack: { 
-//       title: "Chargement...", 
-//       artist: "Inconnu", 
-//       album: "Inconnu", 
-//       cover: "./public/Images/black.jpg", 
-//       src: "",
-//       year: 0,
-//       track: "",
-//       id: undefined
-//     } as Track,
-    
-//     // État de lecture détaillé
-//     playbackState: {
-//       currentTime: 0,
-//       duration: 0,
-//       progress: 0,
-//       volume: 0.2,
-//       isPlaying: false,
-//       isPaused: false,
-//       isLoading: false
-//     } as PlaybackState,
-    
-//     // Options de lecture
-//     playbackOptions: {
-//       shuffle: false,
-//       loop: false,
-//       repeat: 'none' // 'none', 'one', 'all'
-//     },
-    
-//     // Trigger pour notifier les changements
-//     trigger: false as boolean,
-    
-//     // Historique de lecture
-//     playHistory: [] as Track[],
-    
-//     // Queue de lecture suivante
-//     playQueue: [] as Track[],
-//   }),
-
-//   getters: {
-//     // Obtenir la musique actuellement jouée avec toutes ses infos
-//     getCurrentTrack: (state) => {
-//       return {
-//         ...state.activeTrack,
-//         ...state.playbackState,
-//         playbackOptions: state.playbackOptions
-//       };
-//     },
-    
-//     // Vérifier si une musique spécifique est en cours de lecture
-//     isTrackPlaying: (state) => (track: Track) => {
-//       return state.activeTrack.id === track.id && state.playbackState.isPlaying;
-//     },
-    
-//     // Vérifier si une musique spécifique est la musique active (même si en pause)
-//     isActiveTrack: (state) => (track: Track) => {
-//       return state.activeTrack.id === track.id;
-//     },
-    
-//     // Obtenir le pourcentage de progression
-//     getProgressPercentage: (state) => {
-//       if (state.playbackState.duration === 0) return 0;
-//       return (state.playbackState.currentTime / state.playbackState.duration) * 100;
-//     },
-    
-//     // Obtenir l'état de lecture formaté
-//     getFormattedState: (state) => {
-//       return {
-//         currentTime: formatTime(state.playbackState.currentTime),
-//         totalTime: formatTime(state.playbackState.duration),
-//         progress: state.playbackState.progress,
-//         isPlaying: state.playbackState.isPlaying
-//       };
-//     }
-//   },
-
-//   actions: {
-//     // Définir toutes les musiques
-//     async setTracks(newTracks: Track[]) {
-//       // Ajouter des IDs uniques si elles n'en ont pas
-//       this.tracks = newTracks.map((track, index) => ({
-//         ...track,
-//         id: track.id || `track_${index}_${Date.now()}`
-//       }));
-//     },
-
-//     // Définir la playlist active
-//     setActiveTracks(newTracks: Track[]) {
-//       this.activeTracks = newTracks.map((track, index) => ({
-//         ...track,
-//         id: track.id || `track_${index}_${Date.now()}`
-//       }));
-//     },
-
-//     // Changer la musique active
-//     setActiveTrackId(id: number) {
-//       if (id >= 0 && id < this.activeTracks.length) {
-//         this.activeTrackId = id;
-//         this.activeTrack = { ...this.activeTracks[id] };
-//         this.trigger = !this.trigger;
-        
-//         // Ajouter à l'historique si c'est une nouvelle musique
-//         if (this.playHistory.length === 0 || 
-//             this.playHistory[this.playHistory.length - 1].id !== this.activeTrack.id) {
-//           this.addToHistory(this.activeTrack);
-//         }
-//       }
-//     },
-
-//     // Jouer une musique spécifique
-//     playTrack(tracks: Track[], trackIndex: number) {
-//       this.setActiveTracks(tracks);
-//       this.setActiveTrackId(trackIndex);
-//       this.playbackState.isPlaying = true;
-//       this.playbackState.isPaused = false;
-//     },
-
-//     // Mettre à jour l'état de lecture
-//     updatePlaybackState(newState: Partial<PlaybackState>) {
-//       this.playbackState = { ...this.playbackState, ...newState };
-//     },
-
-//     // Jouer/Pause
-//     togglePlay() {
-//       this.playbackState.isPlaying = !this.playbackState.isPlaying;
-//       this.playbackState.isPaused = !this.playbackState.isPlaying;
-//     },
-
-//     // Play
-//     play() {
-//       this.playbackState.isPlaying = true;
-//       this.playbackState.isPaused = false;
-//     },
-
-//     // Pause
-//     pause() {
-//       this.playbackState.isPlaying = false;
-//       this.playbackState.isPaused = true;
-//     },
-
-//     // Stop
-//     stop() {
-//       this.playbackState.isPlaying = false;
-//       this.playbackState.isPaused = false;
-//       this.playbackState.currentTime = 0;
-//       this.playbackState.progress = 0;
-//     },
-
-//     // Musique suivante
-//     nextTrack() {
-//       let nextIndex;
-      
-//       if (this.playbackOptions.shuffle) {
-//         nextIndex = Math.floor(Math.random() * this.activeTracks.length);
-//       } else {
-//         nextIndex = (this.activeTrackId + 1) % this.activeTracks.length;
-//       }
-      
-//       this.setActiveTrackId(nextIndex);
-//     },
-
-//     // Musique précédente
-//     prevTrack() {
-//       const prevIndex = (this.activeTrackId - 1 + this.activeTracks.length) % this.activeTracks.length;
-//       this.setActiveTrackId(prevIndex);
-//     },
-
-//     // Mettre à jour les options de lecture
-//     updatePlaybackOptions(options: Partial<typeof this.playbackOptions>) {
-//       this.playbackOptions = { ...this.playbackOptions, ...options };
-//     },
-
-//     // Toggle Shuffle
-//     toggleShuffle() {
-//       this.playbackOptions.shuffle = !this.playbackOptions.shuffle;
-//     },
-
-//     // Toggle Loop
-//     toggleLoop() {
-//       this.playbackOptions.loop = !this.playbackOptions.loop;
-//     },
-
-//     // Ajouter à l'historique
-//     addToHistory(track: Track) {
-//       this.playHistory.push(track);
-//       // Garder seulement les 50 dernières musiques
-//       if (this.playHistory.length > 50) {
-//         this.playHistory.shift();
-//       }
-//     },
-
-//     // Ajouter à la queue
-//     addToQueue(track: Track) {
-//       this.playQueue.push(track);
-//     },
-
-//     // Supprimer de la queue
-//     removeFromQueue(trackId: string) {
-//       this.playQueue = this.playQueue.filter(track => track.id !== trackId);
-//     },
-
-//     // Vider la queue
-//     clearQueue() {
-//       this.playQueue = [];
-//     },
-
-//     // Mettre à jour la progression en temps réel
-//     updateProgress(currentTime: number, duration: number) {
-//       this.playbackState.currentTime = currentTime;
-//       this.playbackState.duration = duration;
-//       this.playbackState.progress = currentTime;
-//     },
-
-//     // Rechercher une musique dans la collection
-//     findTrack(trackId: string): Track | undefined {
-//       return this.tracks.find(track => track.id === trackId);
-//     },
-
-//     // Obtenir l'état complet pour les composants
-//     getFullState() {
-//       return {
-//         activeTrack: this.activeTrack,
-//         playbackState: this.playbackState,
-//         playbackOptions: this.playbackOptions,
-//         activeTracks: this.activeTracks,
-//         activeTrackId: this.activeTrackId
-//       };
-//     }
-//   }
-// });
-
-// // Fonction utilitaire pour formater le temps
-// function formatTime(seconds: number): string {
-//   if (isNaN(seconds)) return "0:00";
-//   const minutes = Math.floor(seconds / 60);
-//   const secs = Math.floor(seconds % 60);
-//   return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
-// }
-
-// // Fonction pour charger les métadonnées (inchangée)
-// export async function loadMetadata(track: Track) {
-//   try {
-//     let currentTrack = {
-//       title: "Chargement...",
-//       artist: "Inconnu",
-//       album: "Inconnu",
-//       cover: "",
-//       track: {},
-//       year: 0,
-//       src: track.src,
-//       id: track.id || `track_${Date.now()}`
-//     };
-
-//     const filePath = track.src.replace("file://", "");
-//     let fileBuffer
-//     if(typeof window !== "undefined" && window.electron){
-//       fileBuffer = await window.electron.readFile(filePath);
-//     }
-//     if (!fileBuffer) throw new Error("Impossible de lire le fichier");
-
-//     const metadata = await parseBlob(new Blob([fileBuffer]));
-
-//     currentTrack.title = metadata.common.title || track.title || "Titre inconnu";
-//     currentTrack.artist = metadata.common.artist || track.artist || "Artiste inconnu";
-//     currentTrack.album = metadata.common.album || track.album || "Album inconnu";
-//     currentTrack.track = metadata.common.track || track.track || {};
-//     currentTrack.year = metadata.common.year || track.year || 0;
-
-//     if (typeof metadata.common.picture === "object" && metadata.common.picture?.length > 0) {
-//       const picture = metadata.common.picture[0];
-//       const blobUrl = URL.createObjectURL(new Blob([picture.data], { type: picture.format }));
-//       currentTrack.cover = blobUrl;
-//     } else {
-//       currentTrack.cover = track.cover || "./public/Images/black.jpg";
-//     }
-
-//     return currentTrack;
-//   } catch (error) {
-//     console.error("Erreur lors du chargement des métadonnées :", error);
-//   }
-// }
-
 import { defineStore } from 'pinia';
 import { parseBlob } from "music-metadata-browser";
 import { LyricsService } from '../api/lyricsService';
@@ -368,6 +43,7 @@ interface PlaybackState {
 
 export const useMusicStore = defineStore("music", {
   state: () => ({
+    // ... (tout votre 'state' reste inchangé)
     // Collection complète des musiques
     tracks: [
       { title: "Chargement...", artist: "Inconnu", album: "Inconnu", cover: "./public/Images/black.jpg", src: "" }
@@ -404,7 +80,7 @@ export const useMusicStore = defineStore("music", {
     currentPlaylist: null as Playlist | null,
     
     // Index de la musique actuellement jouée dans activeTracks
-    activeTrackId: 0 as number,
+    activeTrackId: 0 as number | null,
     
     // Musique actuellement jouée (objet complet)
     activeTrack: { 
@@ -456,7 +132,7 @@ export const useMusicStore = defineStore("music", {
   }),
 
   getters: {
-    // Obtenir la musique actuellement jouée avec toutes ses infos
+    // ... (tous vos 'getters' restent inchangés)
     getCurrentTrack: (state) => {
       return {
         ...state.activeTrack,
@@ -464,24 +140,16 @@ export const useMusicStore = defineStore("music", {
         playbackOptions: state.playbackOptions
       };
     },
-    
-    // Vérifier si une musique spécifique est en cours de lecture
     isTrackPlaying: (state) => (track: Track) => {
       return state.activeTrack.id === track.id && state.playbackState.isPlaying;
     },
-    
-    // Vérifier si une musique spécifique est la musique active
     isActiveTrack: (state) => (track: Track) => {
       return state.activeTrack.id === track.id;
     },
-    
-    // Obtenir le pourcentage de progression
     getProgressPercentage: (state) => {
       if (state.playbackState.duration === 0) return 0;
       return (state.playbackState.currentTime / state.playbackState.duration) * 100;
     },
-    
-    // Obtenir l'état de lecture formaté
     getFormattedState: (state) => {
       return {
         currentTime: formatTime(state.playbackState.currentTime),
@@ -490,44 +158,28 @@ export const useMusicStore = defineStore("music", {
         isPlaying: state.playbackState.isPlaying
       };
     },
-
-    // === GETTERS POUR PLAYLISTS ===
-    
-    // Obtenir une playlist par ID
     getPlaylistById: (state) => (id: string) => {
       return state.playlists.find(playlist => playlist.id === id);
     },
-    
-    // Obtenir les playlists utilisateur (non par défaut)
     getUserPlaylists: (state) => {
       return state.playlists.filter(playlist => !playlist.isDefault);
     },
-    
-    // Obtenir les playlists par défaut
     getDefaultPlaylists: (state) => {
       return state.playlists.filter(playlist => playlist.isDefault);
     },
-    
-    // Vérifier si une musique est dans une playlist
     isTrackInPlaylist: (state) => (trackId: string, playlistId: string) => {
       const playlist = state.playlists.find(p => p.id === playlistId);
       return playlist ? playlist.tracks.some(track => track.id === trackId) : false;
     },
-    
-    // Vérifier si une musique est dans les favoris
     isTrackFavorite: (state) => (trackId: string) => {
       const favPlaylist = state.playlists.find(p => p.id === 'favorites');
       return favPlaylist ? favPlaylist.tracks.some(track => track.id === trackId) : false;
     },
-    
-    // Obtenir les playlists contenant une musique
     getPlaylistsWithTrack: (state) => (trackId: string) => {
       return state.playlists.filter(playlist => 
         playlist.tracks.some(track => track.id === trackId)
       );
     },
-    
-    // Statistiques des playlists
     getPlaylistStats: (state) => {
       return {
         totalPlaylists: state.playlists.length,
@@ -536,12 +188,24 @@ export const useMusicStore = defineStore("music", {
         totalDuration: state.playlists.reduce((sum, p) => sum + p.duration, 0)
       };
     },
+    getUpcomingTracks: (state) => {
+      // Si l'ID est null (car la musique vient de la playQueue)
+      // ou si la lecture aléatoire est activée, on ne peut pas prédire.
+      if (state.activeTrackId === null || state.playbackOptions.shuffle) {
+        return [];
+      }
+      
+      // S'il n'y a pas de liste active
+      if (state.activeTracks.length === 0) {
+        return [];
+      }
 
+      // On retourne les 10 prochaines chansons (ou moins s'il n'y en a pas 10)
+      return state.activeTracks.slice(state.activeTrackId + 1, state.activeTrackId + 11);
+    },
     hasLyrics: (state) => !!state.currentLyrics,
     lyricsText: (state) => state.currentLyrics?.lyrics || '',
     lyricsSource: (state) => state.currentLyrics?.source || '',
-
-
   },
 
   actions: {
@@ -576,6 +240,8 @@ export const useMusicStore = defineStore("music", {
         // Ajouter à l'historique et à "récemment jouées"
         this.addToHistory(this.activeTrack);
         this.addToRecentlyPlayed(this.activeTrack);
+
+        this.fetchLyricsForCurrentTrack();
       }
     },
 
@@ -615,17 +281,102 @@ export const useMusicStore = defineStore("music", {
       this.playbackState.progress = 0;
     },
 
+    // nextTrack() {
+    //   let nextIndex;
+      
+    //   if (this.playbackOptions.shuffle) {
+    //     nextIndex = Math.floor(Math.random() * this.activeTracks.length);
+    //   } else {
+    //     nextIndex = (this.activeTrackId + 1) % this.activeTracks.length;
+    //   }
+      
+    //   this.setActiveTrackId(nextIndex);
+    // },
     nextTrack() {
-      let nextIndex;
-      
-      if (this.playbackOptions.shuffle) {
-        nextIndex = Math.floor(Math.random() * this.activeTracks.length);
+      // ÉTAPE 1 : La file d'attente "À suivre" (playQueue) est PRIORITAIRE
+      if (this.playQueue.length > 0) {
+        
+        // On prend la première musique de la file d'attente et on la retire
+        const nextTrackInQueue = this.playQueue.shift(); 
+        
+        if (nextTrackInQueue) {
+          // On définit cette musique comme la musique active
+          this.activeTrack = { ...nextTrackInQueue };
+          
+          // IMPORTANT : On met l'ID à null
+          this.activeTrackId = null; 
+          
+          // On notifie l'interface du changement
+          this.trigger = !this.trigger;
+          
+          // On met à jour l'historique et on charge les paroles
+          this.addToHistory(this.activeTrack);
+          this.addToRecentlyPlayed(this.activeTrack);
+          this.fetchLyricsForCurrentTrack(); // (Nous l'avions ajouté avant)
+        }
+
+      // ÉTAPE 2 : S'il n'y a rien dans la file d'attente, on continue normalement
       } else {
-        nextIndex = (this.activeTrackId + 1) % this.activeTracks.length;
+        
+        // On récupère le dernier index valide (s'il était null, on repart de 0)
+        let lastValidIndex = this.activeTrackId !== null ? this.activeTrackId : 0;
+        
+        if (this.activeTracks.length === 0) return; // Sécurité
+
+        let nextIndex;
+        
+        if (this.playbackOptions.shuffle) {
+          nextIndex = Math.floor(Math.random() * this.activeTracks.length);
+        } else {
+          // On passe à la suivante dans la liste active
+          nextIndex = (lastValidIndex + 1) % this.activeTracks.length;
+        }
+        
+        // On appelle 'setActiveTrackId' qui va remettre un ID numérique
+        this.setActiveTrackId(nextIndex);
       }
-      
-      this.setActiveTrackId(nextIndex);
     },
+    // nextTrack() {
+    //   // ÉTAPE 1 : La file d'attente "À suivre" (playQueue) est prioritaire
+    //   if (this.playQueue.length > 0) {
+        
+    //     // On prend la première musique de la file d'attente et on la retire
+    //     const nextTrackInQueue = this.playQueue.shift(); 
+        
+    //     if (nextTrackInQueue) {
+    //       // On définit cette musique comme la musique active
+    //       this.activeTrack = { ...nextTrackInQueue };
+          
+    //       // On met l'ID à null, car cette musique ne vient pas de 'activeTracks'
+    //       this.activeTrackId = null; 
+          
+    //       // On déclenche la mise à jour
+    //       this.trigger = !this.trigger;
+          
+    //       // On l'ajoute à l'historique et aux paroles
+    //       this.addToHistory(this.activeTrack);
+    //       this.addToRecentlyPlayed(this.activeTrack);
+    //       this.fetchLyricsForCurrentTrack();
+    //     }
+
+    //   // ÉTAPE 2 : S'il n'y a rien dans la file d'attente, on continue normalement
+    //   } else {
+        
+    //     // Si la dernière musique n'était pas dans la liste (ID=null)
+    //     // On reprend simplement à la suite de la dernière "vraie" musique jouée
+    //     let lastValidIndex = this.activeTrackId !== null ? this.activeTrackId : 0;
+
+    //     let nextIndex;
+        
+    //     if (this.playbackOptions.shuffle) {
+    //       nextIndex = Math.floor(Math.random() * this.activeTracks.length);
+    //     } else {
+    //       nextIndex = (lastValidIndex + 1) % this.activeTracks.length;
+    //     }
+        
+    //     this.setActiveTrackId(nextIndex);
+    //   }
+    // },
 
     prevTrack() {
       const prevIndex = (this.activeTrackId - 1 + this.activeTracks.length) % this.activeTracks.length;
@@ -687,7 +438,8 @@ export const useMusicStore = defineStore("music", {
       this.currentLyrics = null;
 
       try {
-        const lyrics = await LyricsService.fetchLyrics(
+        // ON UTILISE L'ACTION DU CACHE ICI
+        const lyrics = await this.fetchLyricsWithCache(
           this.activeTrack.artist,
           this.activeTrack.title
         );
@@ -911,8 +663,10 @@ export const useMusicStore = defineStore("music", {
       playlist.dateModified = new Date();
     },
 
-    // Sauvegarder les playlists dans le localStorage
-    savePlaylistsToStorage() {
+    /**
+     * Sauvegarder les playlists dans le fichier JSON via Electron
+     */
+    async savePlaylistsToStorage() {
       try {
         const playlistsToSave = this.playlists.map(playlist => ({
           ...playlist,
@@ -922,20 +676,29 @@ export const useMusicStore = defineStore("music", {
             dateAdded: track.dateAdded
           }))
         }));
-        localStorage.setItem('music_playlists', JSON.stringify(playlistsToSave));
+        
+        // APPEL À ELECTRON AU LIEU DE localStorage
+        await window.electron.savePlaylists(playlistsToSave);
+
       } catch (error) {
-        console.error('Erreur lors de la sauvegarde des playlists:', error);
+        console.error('Erreur (Pinia) lors de la sauvegarde des playlists:', error);
       }
     },
 
-    // Charger les playlists depuis le localStorage
-    loadPlaylistsFromStorage() {
+    /**
+     * Charger les playlists depuis le fichier JSON via Electron
+     */
+    async loadPlaylistsFromStorage() {
       try {
-        const saved = localStorage.getItem('music_playlists');
-        if (!saved) return;
-
-        const savedPlaylists = JSON.parse(saved);
+        // APPEL À ELECTRON AU LIEU DE localStorage
+        const savedPlaylists = await window.electron.loadPlaylists();
         
+        // Si le fichier n'existe pas ou est vide (premier lancement)
+        if (!savedPlaylists) {
+          console.log("Aucun fichier de playlists trouvé, chargement initial.");
+          return;
+        }
+
         savedPlaylists.forEach((savedPlaylist: any) => {
           const existingPlaylist = this.playlists.find(p => p.id === savedPlaylist.id);
           
@@ -968,11 +731,13 @@ export const useMusicStore = defineStore("music", {
                 .filter((track: any) => track !== null)
             };
             
+            // On met à jour les métadonnées de la nouvelle playlist aussi
             this.playlists.push(newPlaylist);
+            this.updatePlaylistMetadata(newPlaylist.id);
           }
         });
       } catch (error) {
-        console.error('Erreur lors du chargement des playlists:', error);
+        console.error('Erreur (Pinia) lors du chargement des playlists:', error);
       }
     },
 
@@ -1040,6 +805,7 @@ export const useMusicStore = defineStore("music", {
   }
 });
 
+// ... (vos fonctions 'formatTime' et 'loadMetadata' restent inchangées)
 // Fonction utilitaire pour formater le temps
 function formatTime(seconds: number): string {
   if (isNaN(seconds)) return "0:00";

@@ -52,9 +52,13 @@
         <lyricsViewer :currentTrack="musicStore.activeTrack" :mini="true" />
       </div>
 
+      <div v-if="$router.currentRoute.value.name != 'settings' && isQueueOpen" class=" w-[25%] bg-black/30 p-2 border border-white/40 rounded-lg backdrop-blur-md overflow-y-auto scrollBar">
+        <QueuePanel @close="isQueueOpen = false" :mini="true" />
+      </div>
+
     </div>
     
-    <Player v-show="$router.currentRoute.value.name != 'settings'" @toggle-section="showLyrics"/>
+    <Player v-show="$router.currentRoute.value.name != 'settings'" @toggle-section="showLyrics" @toggle-queue="showQueueList"/>
 
   </div>
 </template>
@@ -68,6 +72,8 @@ import Player from '@/components/player.vue';
 import { useMusicStore, loadMetadata } from '@/assets/script';
 import lyricsViewer from './components/lyricsViewer.vue';
 
+import QueuePanel from './components/QueuePanel.vue';
+
 const musicStore = useMusicStore();
 
 let isloading = ref(false)
@@ -79,6 +85,11 @@ var restart = ref(false)
 var lyricsOn = ref(false)
 function showLyrics() {
   lyricsOn.value = !lyricsOn.value
+}
+
+let isQueueOpen = ref(false);
+function showQueueList() {
+  isQueueOpen.value = !isQueueOpen.value
 }
 
 // Fonctions pour les contrôles de fenêtre
@@ -131,6 +142,8 @@ onMounted(async() => {
     console.log("Dossier déjà sélectionné :", result.path);
     const validSongs = await initTrackList(result.musics);
     loadTracks(validSongs);
+
+    await musicStore.loadPlaylistsFromStorage()
 
     router.push('/songs')
   } else {

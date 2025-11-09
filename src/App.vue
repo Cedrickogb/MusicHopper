@@ -54,7 +54,7 @@
 
     </div>
     
-    <Player @toggle-section="showLyrics"/>
+    <Player v-show="$router.currentRoute.value.name != 'settings'" @toggle-section="showLyrics"/>
 
   </div>
 </template>

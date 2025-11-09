@@ -9,7 +9,14 @@
       <!-- <div class="bg-black/40 text-white p-2 rounded">
         {{ lyrics.lyrics }}
       </div> -->
-      <pre :class="`${props.mini ? `h-[99%]` : `max-h-[60vh]` } bg-black/40 backdrop-blur-sm text-white font-Poppins p-3 overflow-auto rounded-lg scrollBar lyrics-text`">{{ lyrics.lyrics }}</pre>
+      <!-- <pre :class="`${props.mini ? `h-[99%]` : `max-h-[60vh]` } bg-black/40 backdrop-blur-sm text-white font-Poppins p-3 overflow-auto rounded-lg scrollBar lyrics-text`">{{ lyrics.lyrics }}</pre> -->
+
+      <div :class="`${props.mini ? `h-[99%]` : `max-h-[60vh]` } flex flex-col gap-3 bg-black/40 backdrop-blur-sm text-white font-Poppins p-4 overflow-auto rounded-lg scrollBar lyrics-text`">
+        <p v-for="(line, index) in computedLyricsLines" :key="index" class="lyrics-line">
+          {{ line }}
+        </p>
+      </div>
+
       <small class="lyrics-source">Source: {{ lyrics.source }}</small>
     </div>
     
@@ -23,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { LyricsService } from '../api/lyricsService';
 
 const props = defineProps({
@@ -33,6 +40,15 @@ const props = defineProps({
 
 const lyrics = ref(null);
 const loading = ref(false);
+
+// Crée une propriété calculée qui divise les paroles en un tableau de lignes
+const computedLyricsLines = computed(() => {
+  if (!lyrics.value || !lyrics.value.lyrics) {
+    return []; // Retourne un tableau vide s'il n'y a pas de paroles
+  }
+  // Sépare chaque ligne (par le caractère "nouvelle ligne")
+  return lyrics.value.lyrics.split('\n');
+});
 
 const searchLyrics = async () => {
   if (!props.currentTrack?.artist || !props.currentTrack?.title) return;

@@ -55,7 +55,6 @@
     "directories": {
       "output": "dist_electron"
     },
-    "icon": "assets/musicHopper",
     "files": [
       "electron/main.mjs",
       "electron/preload.cjs",
@@ -72,8 +71,13 @@
       }
     ],
     "win": {
-      "icon": "assets/musicHopper.ico",
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/musicHopper.ico"
     },
     "mac": {
       "icon": "assets/musicHopper.icns",
@@ -85,7 +89,10 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "MusicHopper"
     }
   }
 }

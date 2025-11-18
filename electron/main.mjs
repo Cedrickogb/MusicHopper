@@ -51,13 +51,13 @@ function createWindow() {
   const isDev = !app.isPackaged;
   let iconPath;
 
-  if (isDev) {
-    // En développement
-    iconPath = path.join(__dirname, 'assets', 'musicHopper.png');
-  } else {
-    // En production
-    iconPath = path.join(process.resourcesPath, 'assets', 'musicHopper.png');
-  }
+  // if (isDev) {
+  //   // En développement
+  //   iconPath = path.join(__dirname, 'assets', 'musicHopper.png');
+  // } else {
+  //   // En production
+  //   iconPath = path.join(process.resourcesPath, 'assets', 'musicHopper.png');
+  // }
 
   // Vérifier si le fichier existe et log pour débogage
   console.log('Tentative de chargement de l\'icône:', iconPath);
@@ -67,7 +67,7 @@ function createWindow() {
   const alternativeIconPaths = [
     path.join(__dirname, '..', 'assets', 'musicHopper.png'), // Un niveau au-dessus
     path.join(__dirname, 'assets', 'icon.png'),              // Nom générique
-    path.join(__dirname, 'assets', 'musicHopper.ico'),       // Format Windows
+    path.join(__dirname, 'build', 'musicHopper.ico'),       // Format Windows
     path.join(app.getAppPath(), 'assets', 'musicHopper.png') // Via app path
   ];
 

@@ -378,8 +378,17 @@ export const useMusicStore = defineStore("music", {
     //   }
     // },
 
+    // prevTrack() {
+    //   const prevIndex = (this.activeTrackId - 1 + this.activeTracks.length) % this.activeTracks.length;
+    //   this.setActiveTrackId(prevIndex);
+    // },
     prevTrack() {
-      const prevIndex = (this.activeTrackId - 1 + this.activeTracks.length) % this.activeTracks.length;
+      // On vérifie si l'ID est null (si la musique venait de la queue)
+      // Si c'est null, on utilise 0 comme point de départ
+      const currentId = this.activeTrackId ?? 0;
+
+      // Le reste de ton calcul fonctionne parfaitement
+      const prevIndex = (currentId - 1 + this.activeTracks.length) % this.activeTracks.length;
       this.setActiveTrackId(prevIndex);
     },
 
@@ -678,7 +687,10 @@ export const useMusicStore = defineStore("music", {
         }));
         
         // APPEL À ELECTRON AU LIEU DE localStorage
-        await window.electron.savePlaylists(playlistsToSave);
+        if(typeof window !== "undefined" && window.electron){
+          // @ts-expect-error
+          await window.electron.savePlaylists(playlistsToSave);
+        }
 
       } catch (error) {
         console.error('Erreur (Pinia) lors de la sauvegarde des playlists:', error);
@@ -691,7 +703,11 @@ export const useMusicStore = defineStore("music", {
     async loadPlaylistsFromStorage() {
       try {
         // APPEL À ELECTRON AU LIEU DE localStorage
-        const savedPlaylists = await window.electron.loadPlaylists();
+        let savedPlaylists
+        if(typeof window !== "undefined" && window.electron){
+          // @ts-expect-error
+          savedPlaylists = await window.electron.loadPlaylists();
+        }
         
         // Si le fichier n'existe pas ou est vide (premier lancement)
         if (!savedPlaylists) {

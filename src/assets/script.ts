@@ -462,19 +462,44 @@ export const useMusicStore = defineStore("music", {
     },
 
     // Cache des paroles pour éviter les requêtes répétées
-    lyricsCache: new Map(),
-
-    async fetchLyricsWithCache(artist: string, title: string) {
-      const cacheKey = `${artist}-${title}`.toLowerCase();
+    // lyricsCache: new Map(),
+    // async fetchLyricsWithCache(artist: string, title: string) {
+    //   const cacheKey = `${artist}-${title}`.toLowerCase();
       
-      if (this.lyricsCache.has(cacheKey)) {
-        return this.lyricsCache.get(cacheKey);
+    //   if (this.lyricsCache.has(cacheKey)) {
+    //     return this.lyricsCache.get(cacheKey);
+    //   }
+
+    //   const lyrics = await LyricsService.fetchLyrics(artist, title);
+      
+    //   // Mettre en cache même si null pour éviter les requêtes inutiles
+    //   this.lyricsCache.set(cacheKey, lyrics);
+      
+    //   return lyrics;
+    // },
+    lyricsCache: {} as Record<string, any>,
+    async fetchLyricsWithCache(artist: string, title: string, album?: string, duration?: number) {
+      // 1. On crée une clé unique pour identifier la chanson
+      // On nettoie un peu les chaînes pour éviter les doublons (minuscules, trim)
+      const safeArtist = (artist || "").toLowerCase().trim();
+      const safeTitle = (title || "").toLowerCase().trim();
+      const cacheKey = `${safeArtist}-${safeTitle}`;
+      
+      // 2. CONTRÔLE DU CACHE
+      // On vérifie si la clé existe directement dans l'objet
+      if (this.lyricsCache[cacheKey] !== undefined) {
+        console.log(`✅ Paroles récupérées depuis le cache pour : ${title}`);
+        return this.lyricsCache[cacheKey];
       }
 
-      const lyrics = await LyricsService.fetchLyrics(artist, title);
+      console.log(`🌍 Recherche des paroles en ligne pour : ${title}`);
+
+      // 3. Si pas en cache, on fait la requête réseau
+      const lyrics = await LyricsService.fetchLyrics(artist, title, album, duration);
       
-      // Mettre en cache même si null pour éviter les requêtes inutiles
-      this.lyricsCache.set(cacheKey, lyrics);
+      // 4. MISE EN CACHE
+      // On stocke le résultat (même si c'est null) pour ne pas refaire la requête
+      this.lyricsCache[cacheKey] = lyrics;
       
       return lyrics;
     },

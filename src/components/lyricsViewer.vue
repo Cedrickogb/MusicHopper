@@ -68,7 +68,6 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue'; // Ajout de computed
-import { LyricsService } from '../api/lyricsService';
 import { useMusicStore } from '../assets/script';
 
 const props = defineProps({
@@ -141,7 +140,7 @@ const searchLyrics = async () => {
   currentLineIndex.value = -1;
   
   try {
-    const result = await LyricsService.fetchLyrics(
+    const result = await musicStore.fetchLyricsWithCache(
       props.currentTrack.artist,
       props.currentTrack.title,
       props.currentTrack.album,

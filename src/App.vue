@@ -36,6 +36,20 @@
       <div :class="`g5 absolute flex top-[50%] left-[30%] w-[20em] h-[20em] rounded-full blur-lg`"></div>
       <div :class="`g1 absolute flex bottom-0 left-[75%] w-[50%] h-[40%] rounded-full blur-lg`"></div>
     </div>
+    <!-- Barre de progression du chargement des métadonnées -->
+    <div 
+      v-if="musicStore.loadingProgress.isLoading"
+      class="absolute top-0 left-0 w-full h-0.5 z-50 bg-transparent"
+    >
+      <div 
+        class="h-full transition-all duration-500 ease-out"
+        :style="{ 
+          width: loadingWidth + '%',
+          background: `linear-gradient(90deg, ${musicStore.mainColor}, ${musicStore.mainColor}aa)` 
+        }"
+      ></div>
+    </div>
+
     <div v-if="isloading" class="absolute left-0 -top-[10%] flex justify-center items-center w-full h-[110%] bg-black/30 backdrop-blur-md z-10">
         <span :class="`flex text-cyan-600`">
             <svg class="size-40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><radialGradient id="a12" cx=".66" fx=".66" cy=".3125" fy=".3125" gradientTransform="scale(1.5)"><stop offset="0" stop-color="currentColor"></stop><stop offset=".3" stop-color="currentColor" stop-opacity=".9"></stop><stop offset=".6" stop-color="currentColor" stop-opacity=".6"></stop><stop offset=".8" stop-color="currentColor" stop-opacity=".3"></stop><stop offset="1" stop-color="currentColor" stop-opacity="0"></stop></radialGradient><circle transform-origin="center" fill="none" stroke="url(#a12)" stroke-width="14" stroke-linecap="round" stroke-dasharray="200 1000" stroke-dashoffset="0" cx="100" cy="100" r="70"><animateTransform type="rotate" attributeName="transform" calcMode="spline" dur="2" values="360;0" keyTimes="0;1" keySplines="0 0 1 1" repeatCount="indefinite"></animateTransform></circle><circle transform-origin="center" fill="none" opacity=".2" stroke="currentColor" stroke-width="14" stroke-linecap="round" cx="100" cy="100" r="70"></circle></svg>
@@ -64,12 +78,12 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
 import router from '@/router';
 import SideBar from './components/sideBar.vue';
 import Player from '@/components/player.vue';
-import { useMusicStore, loadMetadata } from '@/assets/script';
+import { useMusicStore } from '@/assets/script';
 import lyricsViewer from './components/lyricsViewer.vue';
 
 import QueuePanel from './components/QueuePanel.vue';
@@ -91,6 +105,13 @@ let isQueueOpen = ref(false);
 function showQueueList() {
   isQueueOpen.value = !isQueueOpen.value
 }
+
+// Progression de chargement en pourcentage (pour la barre)
+const loadingWidth = computed(() => {
+  const { current, total } = musicStore.loadingProgress;
+  if (total === 0) return 0;
+  return Math.round((current / total) * 100);
+});
 
 // Fonctions pour les contrôles de fenêtre
 const minimizeWindow = async () => {
@@ -117,22 +138,6 @@ const closeWindow = async () => {
   }
 };
 
-async function initTrackList(songs) {
-  const enriched = [];
-  for (const song of songs) {
-    const enrichedTrack = await loadMetadata(song);
-    if (enrichedTrack) enriched.push(enrichedTrack);
-  }
-  return enriched;
-}
-
-const loadTracks = async (tracksTab) => {
-  await musicStore.setTracks(tracksTab);
-  if(musicStore.tracks[0].title != "Chargement"){
-    console.log(router,"route")
-  }
-};
-
 onMounted(async() => {
   isloading.value = true
   router.push('/')
@@ -140,18 +145,20 @@ onMounted(async() => {
   const result = await window.electron.validateFolder();
   if (result?.valid) {
     console.log("Dossier déjà sélectionné :", result.path);
-    const validSongs = await initTrackList(result.musics);
-    loadTracks(validSongs);
 
-    await musicStore.loadPlaylistsFromStorage()
-
-    router.push('/songs')
+    // Chargement progressif : naviguer vers /songs immédiatement,
+    // les métadonnées se chargent en arrière-plan
+    isloading.value = false
+    await musicStore.loadTracksProgressively(result.musics, async () => {
+      // onReady : appelé dès que les titres de base sont prêts (Phase 1 terminée)
+      await musicStore.loadPlaylistsFromStorage()
+      router.push('/songs')
+    });
   } else {
     console.log("Aucun dossier valide trouvé, l'utilisateur devra en sélectionner un.");
+    isloading.value = false
     router.push('/settings')
   }
-
-  isloading.value = false
 })
 </script>
 

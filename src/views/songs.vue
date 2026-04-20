@@ -1,6 +1,6 @@
 <template>
-    <div class="text-white h-full p-2">
-        <div class="flex flex-col space-y-4 h-full p-3">
+    <div class="text-white h-full p-2 flex flex-col">
+        <div class="flex flex-col space-y-4 flex-1 min-h-0 p-3">
           <div class="flex items-center justify-between">
             <h1 class="text-4xl font-semibold">Songs</h1>
 
@@ -63,218 +63,135 @@
             </div>
           </div>
 
-          <div class="flex py-4 overflow-auto scrollBar">
-            <div class="flex flex-col w-full space-y-1 p-1">
-              <div v-for="(track, index) in displayedTracks" 
-                :key="track.id || index"
-                @click="playTrack(index)" 
-                :style="{ '--main-color': isActiveTrack(track) ? mainColor : 'transparent' }"
-                :class="`w-full ${index%2 == 0 ? `bg-white/10` : `bg-transparent`} bg-[var(--main-color)]/20 border-2 border-[var(--main-color)]/30  p-1 px-2 rounded-md cursor-pointer hover:bg-white/20 transition-colors group`"
-              >
-                <div v-if="track != undefined" class="flex w-full items-center justify-between text-[0.76em] font-light">
-                  <div 
-                    :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }"
-                    class="flex w-[24%] space-x-2 items-center justify-start text-truncate"
+          <!-- Virtual Scroller : ne rend que les lignes visibles → scroll fluide même avec 1000+ pistes -->
+          <RecycleScroller
+            class="flex-1 overflow-auto scrollBar px-1"
+            :items="displayedTracks"
+            :item-size="60"
+            key-field="id"
+            v-slot="{ item: track, index }"
+          >
+            <div
+              @click="playTrack(index)"
+              :style="{ '--main-color': isActiveTrack(track) ? mainColor : 'transparent' }"
+              :class="`w-full h-[56px] mb-1 ${index % 2 === 0 ? 'bg-white/10' : 'bg-transparent'} bg-[var(--main-color)]/20 border-2 border-[var(--main-color)]/30 px-2 rounded-md cursor-pointer hover:bg-white/20 transition-colors group flex items-center`"
+            >
+              <div class="flex w-full items-center justify-between text-[0.76em] font-light">
+                <!-- Colonne titre -->
+                <div
+                  :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }"
+                  class="flex w-[24%] space-x-2 items-center justify-start min-w-0"
+                >
+                  <p class="flex flex-shrink-0 w-8 justify-center">
+                    {{ isActiveTrack(track) && !isPlaying ? '⏸️' : getTrackNumber(track, index) }}
+                  </p>
+
+                  <div class="flex flex-shrink-0 w-11 h-11 bg-black rounded-md overflow-hidden">
+                    <img v-if="track.cover" class="w-full h-full object-cover" :src="track.cover" loading="lazy" alt="">
+                  </div>
+
+                  <!-- Indicateur de lecture animé -->
+                  <span v-if="isActiveTrack(track)" class="text-[var(--text-color)] flex-shrink-0">
+                    <svg v-if="isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="size-7 animate-pulse" style="shape-rendering:auto;display:block;background:transparent">
+                      <g>
+                        <rect fill="currentColor" height="40" width="14" y="30" x="18"><animate begin="-0.18s" keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="16;30;30" keyTimes="0;0.5;1" calcMode="spline" dur="0.91s" repeatCount="indefinite" attributeName="y"></animate><animate begin="-0.18s" keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="68;40;40" keyTimes="0;0.5;1" calcMode="spline" dur="0.91s" repeatCount="indefinite" attributeName="height"></animate></rect>
+                        <rect fill="currentColor" height="40" width="14" y="30" x="43"><animate begin="-0.09s" keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="19.5;30;30" keyTimes="0;0.5;1" calcMode="spline" dur="0.91s" repeatCount="indefinite" attributeName="y"></animate><animate begin="-0.09s" keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="61;40;40" keyTimes="0;0.5;1" calcMode="spline" dur="0.91s" repeatCount="indefinite" attributeName="height"></animate></rect>
+                        <rect fill="currentColor" height="40" width="14" y="30" x="68"><animate keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="19.5;30;30" keyTimes="0;0.5;1" calcMode="spline" dur="0.91s" repeatCount="indefinite" attributeName="y"></animate><animate keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="61;40;40" keyTimes="0;0.5;1" calcMode="spline" dur="0.91s" repeatCount="indefinite" attributeName="height"></animate></rect>
+                      </g>
+                    </svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-7">
+                      <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clip-rule="evenodd" />
+                    </svg>
+                  </span>
+
+                  <!-- Bouton favoris -->
+                  <button
+                    @click.stop="toggleFavorite(track)"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded flex-shrink-0"
                   >
-                    <p class="flex flex-shrink-0 w-8 justify-center">
-                      {{ isActiveTrack(track) && !isPlaying ? '⏸️' : getTrackNumber(track, index) }}
-                    </p>
-                    
-                    <div class="flex flex-shrink-0 w-11 h-11 bg-black rounded-md overflow-hidden">
-                        <img v-if="track.cover != undefined" class="w-full h-full object-cover" :src="track.cover" alt="">
+                    <svg v-if="isTrackFavorite(track.id)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-red-500">
+                      <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
+                    </svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-white/60 hover:text-red-400">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                    </svg>
+                  </button>
+
+                  <!-- Titre + barre de progression active -->
+                  <div class="flex flex-col min-w-0 flex-1">
+                    <p class="font-medium text-[var(--text-color)]/90 truncate">{{ track.title }}</p>
+                    <div v-if="isActiveTrack(track)" class="w-full bg-white/20 rounded-full h-1 mt-1">
+                      <div class="bg-[var(--text-color)] h-full rounded-full transition-all duration-300" :style="{ width: progressPercentage + '%' }"></div>
                     </div>
-                    
-                    <!-- Indicateur de lecture -->
-                    <span v-if="isActiveTrack(track)" class="text-[var(--text-color)] flex-shrink-0">
-                      <svg v-if="isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="size-7 animate-pulse" style="shape-rendering: auto; display: block; background: transparent;">
-                        <g>
-                          <rect fill="currentColor" height="40" width="14" y="30" x="18">
-                            <animate begin="-0.18181818181818182s" keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="16;30;30" keyTimes="0;0.5;1" calcMode="spline" dur="0.9090909090909091s" repeatCount="indefinite" attributeName="y"></animate>
-                            <animate begin="-0.18181818181818182s" keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="68;40;40" keyTimes="0;0.5;1" calcMode="spline" dur="0.9090909090909091s" repeatCount="indefinite" attributeName="height"></animate>
-                          </rect>
-                          <rect fill="currentColor" height="40" width="14" y="30" x="43">
-                            <animate begin="-0.09090909090909091s" keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="19.499999999999996;30;30" keyTimes="0;0.5;1" calcMode="spline" dur="0.9090909090909091s" repeatCount="indefinite" attributeName="y"></animate>
-                            <animate begin="-0.09090909090909091s" keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="61.00000000000001;40;40" keyTimes="0;0.5;1" calcMode="spline" dur="0.9090909090909091s" repeatCount="indefinite" attributeName="height"></animate>
-                          </rect>
-                          <rect fill="currentColor" height="40" width="14" y="30" x="68">
-                            <animate keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="19.499999999999996;30;30" keyTimes="0;0.5;1" calcMode="spline" dur="0.9090909090909091s" repeatCount="indefinite" attributeName="y"></animate>
-                            <animate keySplines="0 0.5 0.5 1;0 0.5 0.5 1" values="61.00000000000001;40;40" keyTimes="0;0.5;1" calcMode="spline" dur="0.9090909090909091s" repeatCount="indefinite" attributeName="height"></animate>
-                          </rect>
-                        </g>
-                      </svg>
-                      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-7">
-                        <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clip-rule="evenodd" />
-                      </svg>
-                    </span>
-                      
-                    <!-- Bouton favoris -->
-                    <button 
-                      @click.stop="toggleFavorite(track)"
-                      class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded"
+                  </div>
+                </div>
+
+                <!-- Colonne artiste -->
+                <div class="flex w-[24%] justify-center items-center truncate">
+                  <p :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }" class="truncate text-[var(--text-color)]/90">{{ track.artist }}</p>
+                </div>
+
+                <!-- Colonne album -->
+                <div class="flex w-[24%] justify-center items-center truncate">
+                  <p :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }" class="truncate text-[var(--text-color)]/90">{{ track.album }}</p>
+                </div>
+
+                <!-- Durée -->
+                <div class="flex w-[12.5%] justify-end items-center">
+                  <p class="text-white/50">{{ isActiveTrack(track) ? formattedTime.currentTime + ' / ' + formattedTime.totalTime : formatDuration(track.duration || 0) }}</p>
+                </div>
+
+                <!-- Menu contextuel -->
+                <div class="flex w-[12.5%] justify-end items-center">
+                  <div class="relative">
+                    <button
+                      @click.stop="toggleTrackMenu(track.id)"
+                      class="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded transition-all"
                     >
-                      <svg 
-                        v-if="isTrackFavorite(track.id)" 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        viewBox="0 0 24 24" 
-                        fill="currentColor" 
-                        class="w-4 h-4 text-red-500"
-                      >
-                        <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
-                      </svg>
-                      <svg 
-                        v-else 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke-width="1.5" 
-                        stroke="currentColor" 
-                        class="w-4 h-4 text-white/60 hover:text-red-400"
-                      >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-4">
+                        <path d="M4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8Z" fill="currentColor"/>
+                        <path d="M10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6C9.10457 6 10 6.89543 10 8Z" fill="currentColor"/>
+                        <path d="M14 10C15.1046 10 16 9.10457 16 8C16 6.89543 15.1046 6 14 6C12.8954 6 12 6.89543 12 8C12 9.10457 12.8954 10 14 10Z" fill="currentColor"/>
                       </svg>
                     </button>
-                    
-                    <div 
-                      class="flex flex-col min-w-0 flex-1"
+
+                    <!-- Dropdown menu -->
+                    <div
+                      v-if="activeTrackMenu === track.id"
+                      class="absolute bottom-8 right-0 bg-black/90 backdrop-blur-sm border border-white/20 rounded-lg py-1 min-w-48 z-50"
+                      @click.stop
                     >
-                      <p class="flex font-medium text-[var(--text-color)]/90 truncate" >
-                        {{ track.title }}
-                      </p>
-                      <!-- Barre de progression pour la musique active -->
-                      <div v-if="isActiveTrack(track)" class="w-full bg-white/20 rounded-full h-1 mt-1">
-                        <div 
-                          class="bg-[var(--text-color)] h-full rounded-full transition-all duration-300"
-                          :style="{ width: progressPercentage + '%' }"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="flex w-[24%] justify-center items-center truncate">
-                    <p
-                      :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }"
-                      class="flex truncate text-[var(--text-color)]/90"
-                    >
-                      {{ track.artist }}
-                    </p>
-                  </div>
-
-                  <div class="flex w-[24%] justify-center items-center text-truncate">
-                    <p
-                      :style="{ '--text-color': isActiveTrack(track) ? mainColor : 'white' }"
-                      class="flex truncate text-[var(--text-color)]/90"
-                    >
-                      {{ track.album }}
-                    </p>
-                  </div>
-
-                  <div class="flex w-[12.5%] justify-end items-center">
-                    <p class="flex text-white/50"> 
-                      {{ isActiveTrack(track) ? formattedTime.currentTime + ' / ' + formattedTime.totalTime : formatDuration(track.duration || 0) }}
-                    </p>
-                  </div>
-
-                  <div class="flex w-[12.5%] justify-end items-center">
-                    <div class="relative">
-                      <button 
-                        @click="(e)=>{e.stopPropagation(), toggleTrackMenu(track.id)}" 
-                        class="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded transition-all"
-                      >
-                        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-4">
-                          <path d="M4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8Z" fill="currentColor"/>
-                          <path d="M10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6C9.10457 6 10 6.89543 10 8Z" fill="currentColor"/>
-                          <path d="M14 10C15.1046 10 16 9.10457 16 8C16 6.89543 15.1046 6 14 6C12.8954 6 12 6.89543 12 8C12 9.10457 12.8954 10 14 10Z" fill="currentColor"/>
-                        </svg>
+                      <button @click="openPlaylistModal(track)" class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" /></svg>
+                        <span>Ajouter à une playlist</span>
                       </button>
 
-                      <!-- Menu de la musique -->
-                      <div 
-                        v-if="activeTrackMenu === track.id" 
-                        class="absolute bottom-8 right-0 bg-black/90 backdrop-blur-sm border border-white/20 rounded-lg py-1 min-w-48 z-99"
-                        @click.stop
-                      >
-                        <!-- <button 
-                          @click="addToQueue(track)"
-                          class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                          </svg>
-                          <span>Ajouter à la file</span>
-                        </button> -->
+                      <button @click="toggleFavoriteFromMenu(track)" class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2">
+                        <svg v-if="!isTrackFavorite(track.id)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
+                        <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-red-500"><path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" /></svg>
+                        <span>{{ isTrackFavorite(track.id) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}</span>
+                      </button>
 
-                        <button 
-                          @click="openPlaylistModal(track)"
-                          class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
-                          </svg>
-                          <span>Ajouter à une playlist</span>
-                        </button>
+                      <div class="border-t border-white/20 my-1"></div>
 
-                        <button 
-                          @click="toggleFavoriteFromMenu(track)"
-                          class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
-                        >
-                          <svg 
-                            v-if="!isTrackFavorite(track.id)" 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            fill="none" 
-                            viewBox="0 0 24 24" 
-                            stroke-width="1.5" 
-                            stroke="currentColor" 
-                            class="w-4 h-4"
-                          >
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                          </svg>
-                          <svg 
-                            v-else 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            viewBox="0 0 24 24" 
-                            fill="currentColor" 
-                            class="w-4 h-4 text-red-500"
-                          >
-                            <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
-                          </svg>
-                          <span>{{ isTrackFavorite(track.id) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}</span>
-                        </button>
-
-                        <div class="border-t border-white/20 my-1"></div>
-
-                        <!-- Playlists contenant cette musique -->
-                        <div v-if="getTrackPlaylists(track.id).length > 0" class="px-3 py-1">
-                          <p class="text-xs text-white/50 mb-1">Dans les playlists :</p>
-                          <div class="space-y-1">
-                            <div 
-                              v-for="playlist in getTrackPlaylists(track.id).slice(0, 3)" 
-                              :key="playlist.id"
-                              class="text-xs text-[var(--text-color)] truncate"
-                            >
-                              {{ playlist.name }}
-                            </div>
-                            <div v-if="getTrackPlaylists(track.id).length > 3" class="text-xs text-white/40">
-                              +{{ getTrackPlaylists(track.id).length - 3 }} autre(s)
-                            </div>
-                          </div>
+                      <div v-if="getTrackPlaylists(track.id).length > 0" class="px-3 py-1">
+                        <p class="text-xs text-white/50 mb-1">Dans les playlists :</p>
+                        <div class="space-y-1">
+                          <div v-for="playlist in getTrackPlaylists(track.id).slice(0, 3)" :key="playlist.id" class="text-xs text-[var(--text-color)] truncate">{{ playlist.name }}</div>
+                          <div v-if="getTrackPlaylists(track.id).length > 3" class="text-xs text-white/40">+{{ getTrackPlaylists(track.id).length - 3 }} autre(s)</div>
                         </div>
-
-                        <button 
-                          @click="showTrackDetails(track)"
-                          class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                          </svg>
-                          <span>Détails</span>
-                        </button>
                       </div>
+
+                      <button @click="showTrackDetails(track)" class="w-full text-left px-3 py-1 hover:bg-white/10 transition-colors flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg>
+                        <span>Détails</span>
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </RecycleScroller>
         </div>
 
         <!-- Toast de notification -->
@@ -358,6 +275,8 @@
 import { onMounted, ref, computed, onUnmounted, watch } from 'vue';
 import { useMusicStore } from '@/assets/script';
 import AddToPlaylistModal from '../components/AddToPlaylistModal.vue';
+import { RecycleScroller } from 'vue-virtual-scroller';
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 
 const showOrderOptions = ref(false);
 const showOnlyFavorites = ref(false);
@@ -524,6 +443,7 @@ onUnmounted(() => {
 });
 </script>
 
+
 <style scoped>
 @keyframes slide-up {
   from {
@@ -538,5 +458,14 @@ onUnmounted(() => {
 
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
+}
+
+/* RecycleScroller doit avoir une hauteur explicite pour fonctionner */
+:deep(.vue-recycle-scroller) {
+  height: 100%;
+}
+
+:deep(.vue-recycle-scroller__item-wrapper) {
+  width: 100%;
 }
 </style>

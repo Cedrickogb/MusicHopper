@@ -127,8 +127,15 @@ export const useMusicStore = defineStore("music", {
     // Queue de lecture suivante
     playQueue: [] as Track[],
 
-    //couleur principale de l'app
-    mainColor: '#0891B2'
+    // Couleur principale de l'app
+    mainColor: '#0891B2',
+
+    // Progression du chargement progressif des métadonnées
+    loadingProgress: {
+      current: 0,
+      total: 0,
+      isLoading: false
+    }
   }),
 
   getters: {
@@ -222,6 +229,120 @@ export const useMusicStore = defineStore("music", {
         id: track.id || `track_${index}_${Date.now()}`,
         dateAdded: track.dateAdded || new Date()
       }));
+    },
+
+    /**
+     * Chargement progressif des métadonnées.
+     * Phase 1 : affiche immédiatement les pistes avec titre de base.
+     * Phase 2 : applique le cache persistant (instantané).
+     * Phase 3 : charge les métadonnées manquantes par lots de 5 en parallèle.
+     * @param rawFiles  List de { title, src } retournée par le main process
+     * @param onReady   Callback appelé dès que les pistes de base sont prêtes (avant chargement complet)
+     */
+    async loadTracksProgressively(
+      rawFiles: { title: string; src: string }[],
+      onReady?: () => void
+    ) {
+      if (!rawFiles || rawFiles.length === 0) return;
+
+      // ── Phase 1 : affichage immédiat ──────────────────────────────────────────
+      const baseTracks: Track[] = rawFiles.map((f, index) => ({
+        id: `track_${index}_${Date.now()}`,
+        title: f.title,
+        artist: '',
+        album: '',
+        cover: '',
+        src: f.src,
+        year: 0,
+        track: '',
+        duration: 0,
+        dateAdded: new Date()
+      }));
+      this.tracks = baseTracks;
+
+      // Notifier le composant parent pour naviguer vers /songs immédiatement
+      onReady?.();
+
+      // ── Phase 2 : appliquer le cache persistant ───────────────────────────────
+      this.loadingProgress = { current: 0, total: rawFiles.length, isLoading: true };
+
+      const srcList = rawFiles.map(f => f.src);
+      let cachedMap: Record<string, any> = {};
+
+      try {
+        if (typeof window !== 'undefined' && window.electron) {
+          // @ts-expect-error
+          cachedMap = await window.electron.getCachedMetadata(srcList);
+        }
+      } catch (e) {
+        console.warn('Impossible de charger le cache métadonnées :', e);
+      }
+
+      // Appliquer immédiatement les métadonnées en cache
+      let cachedCount = 0;
+      for (let i = 0; i < this.tracks.length; i++) {
+        const cached = cachedMap[this.tracks[i].src];
+        if (cached) {
+          this.tracks[i] = { ...this.tracks[i], ...cached };
+          cachedCount++;
+        }
+      }
+      this.loadingProgress.current = cachedCount;
+      console.log(`📦 ${cachedCount} pistes chargées depuis le cache`);
+
+      // ── Phase 3 : charger les métadonnées manquantes par lots ─────────────────
+      const uncachedTracks = this.tracks.filter(t => t.artist === '');
+      const BATCH_SIZE = 5;
+      const newCacheBatch: Record<string, any> = {};
+
+      for (let i = 0; i < uncachedTracks.length; i += BATCH_SIZE) {
+        const batch = uncachedTracks.slice(i, i + BATCH_SIZE);
+
+        // Charger 5 fichiers en parallèle
+        const results = await Promise.allSettled(
+          batch.map(track => loadMetadata(track))
+        );
+
+        for (let j = 0; j < results.length; j++) {
+          const result = results[j];
+          if (result.status === 'fulfilled' && result.value) {
+            const enriched = result.value;
+            // Trouver l'index dans this.tracks et mettre à jour
+            const trackIndex = this.tracks.findIndex(t => t.src === batch[j].src);
+            if (trackIndex !== -1) {
+              this.tracks[trackIndex] = { ...this.tracks[trackIndex], ...enriched };
+            }
+            // Préparer la mise en cache (sans cover blob — non sérialisable)
+            newCacheBatch[batch[j].src] = {
+              title: enriched.title,
+              artist: enriched.artist,
+              album: enriched.album,
+              year: enriched.year,
+              duration: enriched.duration,
+              track: enriched.track
+              // Note: cover (blob URL) n'est pas mis en cache car non persistable
+            };
+          }
+        }
+
+        this.loadingProgress.current = cachedCount + Math.min(i + BATCH_SIZE, uncachedTracks.length);
+      }
+
+      // Sauvegarder le nouveau lot de métadonnées dans le cache persistant
+      if (Object.keys(newCacheBatch).length > 0) {
+        try {
+          if (typeof window !== 'undefined' && window.electron) {
+            // @ts-expect-error
+            await window.electron.saveCachedMetadata(newCacheBatch);
+            console.log(`💾 ${Object.keys(newCacheBatch).length} nouvelles entrées sauvegardées dans le cache`);
+          }
+        } catch (e) {
+          console.warn('Impossible de sauvegarder le cache métadonnées :', e);
+        }
+      }
+
+      this.loadingProgress = { current: rawFiles.length, total: rawFiles.length, isLoading: false };
+      console.log('✅ Chargement progressif terminé');
     },
 
     setActiveTracks(newTracks: Track[]) {

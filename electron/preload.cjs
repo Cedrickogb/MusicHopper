@@ -15,7 +15,11 @@ contextBridge.exposeInMainWorld("electron", {
   closeWindow: () => ipcRenderer.invoke('close-window'),
   isMaximized: () => ipcRenderer.invoke('is-maximized'),
 
-  // --- AJOUT POUR LES PLAYLISTS ---
+  // Playlists
   savePlaylists: (data) => ipcRenderer.invoke('save-playlists', data),
-  loadPlaylists: () => ipcRenderer.invoke('load-playlists')
+  loadPlaylists: () => ipcRenderer.invoke('load-playlists'),
+
+  // Cache métadonnées (chargement progressif)
+  getCachedMetadata: (srcList) => ipcRenderer.invoke('get-cached-metadata', srcList),
+  saveCachedMetadata: (batchData) => ipcRenderer.invoke('save-cached-metadata', batchData),
 });

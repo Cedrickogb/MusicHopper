@@ -1,9 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, protocol } from "electron";
 import path from "path";
-// --- DÉBUT AJOUT PERSISTANCE PLAYLIST ---
-// On importe 'fs' depuis 'fs.promises' pour la version asynchrone
-// import { promises as fs } from "fs"; 
-// --- FIN AJOUT PERSISTANCE PLAYLIST ---
 import fs from "fs";
 import Store from "electron-store";
 import { fileURLToPath } from 'url';
@@ -14,11 +10,36 @@ const __dirname = path.dirname(__filename);
 const store = new Store();
 
 let mainWindow;
-// --- DÉBUT AJOUT PERSISTANCE PLAYLIST ---
-// On définit le chemin du fichier JSON dans le dossier 'userData'
-const playlistsPath = path.join(app.getPath('userData'), 'playlists.json');
-// --- FIN AJOUT PERSISTANCE PLAYLIST ---
 
+// Chemins des fichiers de persistance
+const playlistsPath = path.join(app.getPath('userData'), 'playlists.json');
+const metadataCachePath = path.join(app.getPath('userData'), 'metadata-cache.json');
+
+// ─── Cache Métadonnées (en mémoire) ───────────────────────────────────────────
+let metadataCache = {};
+
+function loadMetadataCacheFromDisk() {
+  try {
+    if (fs.existsSync(metadataCachePath)) {
+      const raw = fs.readFileSync(metadataCachePath, 'utf8');
+      metadataCache = JSON.parse(raw);
+      console.log(`✅ Cache métadonnées chargé : ${Object.keys(metadataCache).length} entrées`);
+    }
+  } catch (err) {
+    console.warn("Impossible de charger le cache métadonnées :", err.message);
+    metadataCache = {};
+  }
+}
+
+function saveMetadataCacheToDisk() {
+  try {
+    fs.writeFileSync(metadataCachePath, JSON.stringify(metadataCache));
+  } catch (err) {
+    console.warn("Impossible de sauvegarder le cache métadonnées :", err.message);
+  }
+}
+
+// ─── Débug Icônes ──────────────────────────────────────────────────────────────
 function debugIconPaths() {
   const isDev = !app.isPackaged;
   console.log('\n=== DEBUG ICÔNES ===');
@@ -44,34 +65,22 @@ function debugIconPaths() {
   console.log('===================\n');
 }
 
+// ─── Création de la fenêtre ────────────────────────────────────────────────────
 function createWindow() {
-
-  debugIconPaths()
-  // Déterminer le chemin de l'icône selon l'environnement
+  debugIconPaths();
   const isDev = !app.isPackaged;
   let iconPath;
 
-  // if (isDev) {
-  //   // En développement
-  //   iconPath = path.join(__dirname, 'assets', 'musicHopper.png');
-  // } else {
-  //   // En production
-  //   iconPath = path.join(process.resourcesPath, 'assets', 'musicHopper.png');
-  // }
-
-  // Vérifier si le fichier existe et log pour débogage
   console.log('Tentative de chargement de l\'icône:', iconPath);
   console.log('Fichier existe:', fs.existsSync(iconPath));
 
-  // Chemins alternatifs à tester
   const alternativeIconPaths = [
-    path.join(__dirname, '..', 'assets', 'musicHopper.png'), // Un niveau au-dessus
-    path.join(__dirname, 'assets', 'icon.png'),              // Nom générique
-    path.join(__dirname, 'build', 'musicHopper.ico'),       // Format Windows
-    path.join(app.getAppPath(), 'assets', 'musicHopper.png') // Via app path
+    path.join(__dirname, '..', 'assets', 'musicHopper.png'),
+    path.join(__dirname, 'assets', 'icon.png'),
+    path.join(__dirname, 'build', 'musicHopper.ico'),
+    path.join(app.getAppPath(), 'assets', 'musicHopper.png')
   ];
 
-  // Trouver la première icône qui existe
   if (!fs.existsSync(iconPath)) {
     for (const altPath of alternativeIconPaths) {
       console.log('Test du chemin alternatif:', altPath, '- Existe:', fs.existsSync(altPath));
@@ -86,7 +95,7 @@ function createWindow() {
     frame: false,
     width: 1100,
     height: 600,
-    icon: iconPath, // Utiliser le chemin déterminé
+    icon: iconPath,
     webPreferences: {
       preload: path.resolve(__dirname, "preload.cjs"),
       nodeIntegration: false,
@@ -97,45 +106,38 @@ function createWindow() {
     show: false
   });
 
-  // Afficher la fenêtre une fois que le contenu est chargé
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
 
-  // Le reste de votre code reste identique...
   console.log("isDev:", isDev);
   console.log("__dirname:", __dirname);
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
   } else {
-    // En production, le __dirname pointe vers electron/ dans l'asar
-    // Il faut remonter d'un niveau pour accéder à dist/
     const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
     console.log("Tentative de chargement du fichier:", indexPath);
-    console.log("__dirname:", __dirname);
-    
+
     mainWindow.loadFile(indexPath).catch(err => {
       console.error("Erreur lors du chargement de l'index.html:", err);
-      
-      // Fallback: essayer différents chemins possibles
+
       const fallbackPaths = [
         path.join(__dirname, 'dist', 'index.html'),
         path.join(process.resourcesPath, 'app', 'dist', 'index.html'),
         path.join(app.getAppPath(), 'dist', 'index.html'),
       ];
-      
+
       let loaded = false;
       for (const fallbackPath of fallbackPaths) {
         console.log("Tentative avec:", fallbackPath);
         if (fs.existsSync(fallbackPath)) {
-          console.log("Fichier trouvé, chargement...");
           mainWindow.loadFile(fallbackPath);
           loaded = true;
           break;
         }
       }
-      
+
       if (!loaded) {
         mainWindow.loadURL(`data:text/html,<html><body>
           <h1>Erreur de chargement</h1>
@@ -163,44 +165,41 @@ function createWindow() {
 
 
 app.whenReady().then(() => {
+  // Charger le cache métadonnées au démarrage
+  loadMetadataCacheFromDisk();
+
   // Enregistrement du protocole personnalisé
   protocol.registerFileProtocol("local", (request, callback) => {
-    const url = request.url.replace("local://", ""); 
+    const url = request.url.replace("local://", "");
     const filePath = path.normalize(decodeURIComponent(url));
     callback({ path: filePath });
   });
 
-  // --- DÉBUT AJOUT PERSISTANCE PLAYLIST ---
+  // ─── Persistance Playlists ───────────────────────────────────────────────────
 
-// 1. Gérer la SAUVEGARDE (Version Synchrone)
   ipcMain.handle('save-playlists', (event, playlistsData) => {
     try {
       fs.writeFileSync(playlistsPath, JSON.stringify(playlistsData, null, 2));
       return { success: true };
     } catch (error) {
-      console.error("Erreur (sync) lors de la sauvegarde des playlists :", error);
+      console.error("Erreur lors de la sauvegarde des playlists :", error);
       return { success: false, error: error.message };
     }
   });
 
-  // 2. Gérer le CHARGEMENT (Version Synchrone)
   ipcMain.handle('load-playlists', () => {
     try {
-      // On vérifie d'abord si le fichier existe
-      if (!fs.existsSync(playlistsPath)) {
-        return null; // Pas de fichier, c'est normal
-      }
+      if (!fs.existsSync(playlistsPath)) return null;
       const data = fs.readFileSync(playlistsPath, 'utf8');
       return JSON.parse(data);
     } catch (error) {
-      console.error("Erreur (sync) lors du chargement des playlists :", error);
+      console.error("Erreur lors du chargement des playlists :", error);
       return null;
     }
   });
 
-  // --- FIN AJOUT PERSISTANCE PLAYLIST ---
+  // ─── Ouverture de dossier ────────────────────────────────────────────────────
 
-  // Gestion de l'ouverture de dossier
   ipcMain.handle("open-folder-dialog", async () => {
     try {
       const result = await dialog.showOpenDialog(mainWindow, {
@@ -210,10 +209,11 @@ app.whenReady().then(() => {
       if (result.canceled) return null;
 
       const folderPath = result.filePaths[0];
+      const audioExtensions = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac'];
 
-      // Lister les fichiers audio dans le dossier sélectionné
+      // Retourner uniquement les infos légères (pas de lecture de fichier)
       const files = fs.readdirSync(folderPath)
-        .filter(file => file.match(/\.(mp3|wav|ogg|flac|m4a|aac)$/i))
+        .filter(file => audioExtensions.includes(path.extname(file).toLowerCase()))
         .map(file => ({
           title: path.basename(file, path.extname(file)),
           src: `file://${path.join(folderPath, file)}`
@@ -227,52 +227,82 @@ app.whenReady().then(() => {
     }
   });
 
-  // Validation du dossier de musique
+  // ─── Validation du dossier ───────────────────────────────────────────────────
+
   ipcMain.handle("validate-folder", async () => {
     try {
       const folder = store.get("musicFolder");
-      if (!folder) {
-        return { valid: false, reason: "missing" };
-      }
-    
+      if (!folder) return { valid: false, reason: "missing" };
+
       const audioExtensions = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac'];
       const files = fs.readdirSync(folder);
       const hasMusic = files.some(file => audioExtensions.includes(path.extname(file).toLowerCase()));
-    
-      if (!hasMusic) {
-        return { valid: false, reason: "no-music" };
-      }
-    
+
+      if (!hasMusic) return { valid: false, reason: "no-music" };
+
+      // Retourner uniquement les infos légères (titre + src) — PAS le contenu des fichiers
       const musics = files
         .filter(file => audioExtensions.includes(path.extname(file).toLowerCase()))
         .map(file => ({
           title: path.basename(file, path.extname(file)),
           src: `file://${path.join(folder, file)}`
         }));
-    
+
       return { valid: true, path: folder, musics };
     } catch (error) {
-      // 'fs.access' lèvera une erreur si le dossier n'existe pas
-      if (error.code === 'ENOENT') {
-        return { valid: false, reason: "missing" };
-      }
+      if (error.code === 'ENOENT') return { valid: false, reason: "missing" };
       console.error("Erreur lors de la validation du dossier:", error);
       return { valid: false, reason: "error" };
     }
   });
-  
-  // Lecture de fichier
+
+  // ─── Lecture d'un seul fichier (métadonnées à la demande) ───────────────────
+
   ipcMain.handle('read-file', async (event, filePath) => {
     try {
-      // return await fs.promises.readFile(filePath);
-      return await fs.readFileSync(filePath);
+      return fs.readFileSync(filePath);
     } catch (error) {
       console.error("Erreur lors de la lecture du fichier:", error);
       throw error;
     }
   });
 
-  // Gestion des contrôles de fenêtre
+  // ─── Cache Métadonnées : lecture ─────────────────────────────────────────────
+
+  /**
+   * Retourne les métadonnées cachées pour une liste de src.
+   * Le renderer envoie la liste des src, on retourne un objet { src: metadata }.
+   */
+  ipcMain.handle('get-cached-metadata', (event, srcList) => {
+    const result = {};
+    for (const src of srcList) {
+      if (metadataCache[src]) {
+        result[src] = metadataCache[src];
+      }
+    }
+    console.log(`📦 Cache hit : ${Object.keys(result).length}/${srcList.length} fichiers`);
+    return result;
+  });
+
+  // ─── Cache Métadonnées : écriture ────────────────────────────────────────────
+
+  /**
+   * Sauvegarde les métadonnées d'un lot de fichiers dans le cache.
+   * Le renderer envoie un objet { src: metadata }.
+   */
+  ipcMain.handle('save-cached-metadata', (event, batchData) => {
+    try {
+      Object.assign(metadataCache, batchData);
+      saveMetadataCacheToDisk();
+      return { success: true };
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde du cache métadonnées :", error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // ─── Contrôles de fenêtre ────────────────────────────────────────────────────
+
   ipcMain.handle('minimize-window', () => {
     mainWindow.minimize();
   });

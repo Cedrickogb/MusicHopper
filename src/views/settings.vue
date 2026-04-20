@@ -39,8 +39,12 @@
         </div>
 
         <div v-if="isloading" class="absolute left-0 -top-[10%] flex justify-center items-center w-full h-[110%] bg-black/30 backdrop-blur-md  z-10">
-            <span :class="`flex text-[var(--main-color)]`">
-                <svg class="size-40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><radialGradient id="a12" cx=".66" fx=".66" cy=".3125" fy=".3125" gradientTransform="scale(1.5)"><stop offset="0" stop-color="currentColor"></stop><stop offset=".3" stop-color="currentColor" stop-opacity=".9"></stop><stop offset=".6" stop-color="currentColor" stop-opacity=".6"></stop><stop offset=".8" stop-color="currentColor" stop-opacity=".3"></stop><stop offset="1" stop-color="currentColor" stop-opacity="0"></stop></radialGradient><circle transform-origin="center" fill="none" stroke="url(#a12)" stroke-width="14" stroke-linecap="round" stroke-dasharray="200 1000" stroke-dashoffset="0" cx="100" cy="100" r="70"><animateTransform type="rotate" attributeName="transform" calcMode="spline" dur="2" values="360;0" keyTimes="0;1" keySplines="0 0 1 1" repeatCount="indefinite"></animateTransform></circle><circle transform-origin="center" fill="none" opacity=".2" stroke="currentColor" stroke-width="14" stroke-linecap="round" cx="100" cy="100" r="70"></circle></svg>                </span>
+            <div class="flex flex-col items-center space-y-4">
+              <span :class="`flex text-[var(--main-color)]`">
+                  <svg class="size-20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><radialGradient id="a12" cx=".66" fx=".66" cy=".3125" fy=".3125" gradientTransform="scale(1.5)"><stop offset="0" stop-color="currentColor"></stop><stop offset=".3" stop-color="currentColor" stop-opacity=".9"></stop><stop offset=".6" stop-color="currentColor" stop-opacity=".6"></stop><stop offset=".8" stop-color="currentColor" stop-opacity=".3"></stop><stop offset="1" stop-color="currentColor" stop-opacity="0"></stop></radialGradient><circle transform-origin="center" fill="none" stroke="url(#a12)" stroke-width="14" stroke-linecap="round" stroke-dasharray="200 1000" stroke-dashoffset="0" cx="100" cy="100" r="70"><animateTransform type="rotate" attributeName="transform" calcMode="spline" dur="2" values="360;0" keyTimes="0;1" keySplines="0 0 1 1" repeatCount="indefinite"></animateTransform></circle><circle transform-origin="center" fill="none" opacity=".2" stroke="currentColor" stroke-width="14" stroke-linecap="round" cx="100" cy="100" r="70"></circle></svg>
+              </span>
+              <p class="text-sm text-white/70">Analyse de la bibliothèque...</p>
+            </div>
         </div>
       </div>
     </div>
@@ -49,60 +53,43 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import router from '@/router';
-import { parseBlob } from "music-metadata-browser";
-import { useMusicStore, loadMetadata } from '@/assets/script';
+import { useMusicStore } from '@/assets/script';
 
 const isloading = ref(false);
 const musicStore = useMusicStore();
 let mainColor = musicStore.mainColor;
 
-// Fonction principale de chargement avec métadonnées
-const loadTracks = async (tracksTab) => {
-  await musicStore.setTracks(tracksTab);
-  console.log(musicStore.tracks, "settings");
-
-  router.push('/songs')
-};
-
-
-// Convertir une liste de morceaux en liste enrichie avec métadonnées
-async function initTrackList(songs) {
-  const enriched = [];
-  for (const song of songs) {
-    const enrichedTrack = await loadMetadata(song);
-    if (enrichedTrack) enriched.push(enrichedTrack);
-  }
-  return enriched;
-}
-
-// Sélection manuelle d’un dossier
+// Sélection manuelle d'un dossier
 const selectFolder = async () => {
   isloading.value = true;
 
   if (!window.electron) {
     alert("Electron n'est pas disponible !");
+    isloading.value = false;
     return;
   }
 
   const files = await window.electron.openFolderDialog();
-  if (files && files.length > 0) {
-    const validSongs = await initTrackList(files);
-    loadTracks(validSongs);
-  }
-
   isloading.value = false;
+
+  if (files && files.length > 0) {
+    // Chargement progressif : naviguer vers /songs immédiatement
+    // puis enrichir les métadonnées en arrière-plan
+    await musicStore.loadTracksProgressively(files, () => {
+      router.push('/songs');
+    });
+  }
 };
 
-//function pour le cahngement des couleur de l'app
+// Fonction pour le changement des couleurs de l'app
 function changeAppMainColor(type) {
   if (type === 'main') {
     musicStore.updateMainColor(musicStore.mainColor)
     document.documentElement.style.setProperty('--scrollBar-color', musicStore.mainColor);
-    // document.documentElement.style.setProperty('--main-color', musicStore.mainColor);
   }
 }
-// Automatiquement vérifier si un dossier est déjà enregistré
+
 onMounted(async () => {
 
 });
-</script> 
+</script>

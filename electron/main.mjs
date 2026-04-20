@@ -22,7 +22,20 @@ function loadMetadataCacheFromDisk() {
   try {
     if (fs.existsSync(metadataCachePath)) {
       const raw = fs.readFileSync(metadataCachePath, 'utf8');
-      metadataCache = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+
+      // Migration : si les entrées de cache n'ont pas de cover (ancienne version),
+      // on invalide le cache pour forcer la régénération avec les thumbnails.
+      const firstEntry = Object.values(parsed)[0];
+      if (firstEntry && typeof firstEntry === 'object' && !('cover' in firstEntry)) {
+        console.log('🔄 Cache obsolète détecté (pas de cover), réinitialisation...');
+        metadataCache = {};
+        // Supprimer l'ancien fichier
+        fs.unlinkSync(metadataCachePath);
+        return;
+      }
+
+      metadataCache = parsed;
       console.log(`✅ Cache métadonnées chargé : ${Object.keys(metadataCache).length} entrées`);
     }
   } catch (err) {

@@ -312,15 +312,28 @@ export const useMusicStore = defineStore("music", {
             if (trackIndex !== -1) {
               this.tracks[trackIndex] = { ...this.tracks[trackIndex], ...enriched };
             }
-            // Préparer la mise en cache (sans cover blob — non sérialisable)
+            // Préparer la mise en cache (cover compressée en miniature base64)
+            const coverDataUrl = enriched.cover 
+              ? await blobUrlToThumbnail(enriched.cover, 80)
+              : null;
+            
+            // Libérer le blob URL original (non persistable) pour éviter les fuites mémoire
+            if (enriched.cover && enriched.cover.startsWith('blob:')) {
+              URL.revokeObjectURL(enriched.cover);
+              // Remplacer par le thumbnail data URI dans la piste affichée aussi
+              if (trackIndex !== -1 && coverDataUrl) {
+                this.tracks[trackIndex].cover = coverDataUrl;
+              }
+            }
+
             newCacheBatch[batch[j].src] = {
               title: enriched.title,
               artist: enriched.artist,
               album: enriched.album,
               year: enriched.year,
               duration: enriched.duration,
-              track: enriched.track
-              // Note: cover (blob URL) n'est pas mis en cache car non persistable
+              track: enriched.track,
+              cover: coverDataUrl  // Data URI persistable (JPEG 80x80, ~3KB)
             };
           }
         }
@@ -1018,5 +1031,49 @@ export async function loadMetadata(track: Track) {
     return currentTrack;
   } catch (error) {
     console.error("Erreur lors du chargement des métadonnées :", error);
+  }
+}
+
+/**
+ * Convertit un blob URL (cover extraite d'un MP3) en miniature JPEG base64.
+ * Résultat : ~2-5KB par image au lieu de 100-300KB — idéal pour le cache JSON.
+ *
+ * @param blobUrl  URL blob temporaire (ex: blob:http://localhost:5173/abc123)
+ * @param size     Taille en pixels du carré de sortie (défaut: 80)
+ * @param quality  Qualité JPEG 0-1 (défaut: 0.75)
+ * @returns        Data URI JPEG (data:image/jpeg;base64,...) ou null si erreur
+ */
+async function blobUrlToThumbnail(
+  blobUrl: string,
+  size = 80,
+  quality = 0.75
+): Promise<string | null> {
+  if (!blobUrl) return null;
+  try {
+    // Charger l'image depuis le blob URL
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = reject;
+      img.src = blobUrl;
+    });
+
+    // Dessiner sur un canvas carré
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // Centrage/recadrage (cover art est toujours carré normalement)
+    const minSide = Math.min(img.width, img.height);
+    const sx = (img.width - minSide) / 2;
+    const sy = (img.height - minSide) / 2;
+    ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+    return canvas.toDataURL('image/jpeg', quality);
+  } catch (err) {
+    console.warn('Impossible de convertir la cover en thumbnail :', err);
+    return null;
   }
 }

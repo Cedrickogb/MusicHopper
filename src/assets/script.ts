@@ -12,7 +12,7 @@ interface Track {
   title: string;
   src: string;
   year: number;
-  track: string;
+  track: string | object;
   id?: string;
   duration?: number;
   dateAdded?: Date;
